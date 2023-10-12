@@ -1,0 +1,36 @@
+[package]
+name = "attester-backend"
+authors = ["KILT <info@kilt.io>"]
+edition = "2021"
+homepage = "https://kilt.io/"
+license-file = "LICENSE"
+readme = "README.md"
+version = "0.0.1"
+
+[dependencies]
+subxt = { version = "0.31", features = ["substrate-compat"] }
+subxt-signer = { version = "0.31", features = ["subxt"] }
+log = "0.4.17"
+pretty_env_logger = "0.4"
+envy = "0.4"
+hex = "0.4.3"
+serde = { version = "1.0.147", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+actix-web = "4"
+chrono = { version = "0.4.24", features = ["serde"] }
+sqlx = { version = "0.7", features = [
+    "runtime-tokio",
+    "postgres",
+    "uuid",
+    "time",
+    "chrono",
+] }
+uuid = { version = "1.4.1", features = ["v4", "serde"] }
+serde_json = { version = "1.0", features = ["raw_value"] }
+actix-cors = "0.6.4"
+thiserror = "1.0.49"
+
+
+[features]
+
+mock = []
