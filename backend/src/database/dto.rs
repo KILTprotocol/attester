@@ -1,6 +1,5 @@
-use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
+use sqlx::{types::chrono::NaiveDateTime, FromRow};
 use uuid::Uuid;
 
 pub type Hash = String;
