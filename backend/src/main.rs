@@ -26,7 +26,7 @@ async fn main() -> std::io::Result<()> {
 
     let host_name = config.host_name.clone();
     let port = config.port.clone();
-    let db_executor = database::utils::init(&config.database_url).await;
+    let db_executor = database::connection::init(&config.database_url).await;
 
     let app_state = AppState {
         config,
