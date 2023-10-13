@@ -1,10 +1,10 @@
 use serde::Deserialize;
-use subxt::ext::sp_core::crypto::SecretStringError;
-use subxt::ext::sp_core::sr25519::Pair;
-use subxt::ext::sp_core::Pair as PairTrait;
-use subxt::tx::PairSigner;
-use subxt::utils::AccountId32;
-use subxt::OnlineClient;
+use subxt::{
+    ext::sp_core::{crypto::SecretStringError, sr25519::Pair, Pair as PairTrait},
+    tx::PairSigner,
+    utils::AccountId32,
+    OnlineClient,
+};
 
 use crate::tx::KiltConfig;
 
