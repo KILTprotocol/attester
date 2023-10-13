@@ -81,7 +81,7 @@ async fn approve_attestation(
 ) -> Result<HttpResponse, AppError> {
     let attestation_id = path.into_inner();
     let attestation = can_approve_attestation(&attestation_id, &state.db_executor).await?;
-    let credential = serde_json::from_value::<Credential>(attestation.credential)?;
+    let credential: Credential = serde_json::from_value(attestation.credential)?;
     let ctype_hash = hex::decode(credential.claim.ctype_hash.trim_start_matches("0x").trim())?;
     let claim_hash = hex::decode(credential.root_hash.trim_start_matches("0x").trim())?;
     if claim_hash.len() != 32 || ctype_hash.len() != 32 {
@@ -109,7 +109,7 @@ async fn revoke_attestation(
 
     let attestation = can_revoke_attestation(&attestation_id, &state.db_executor).await?;
 
-    let credential = serde_json::from_value::<Credential>(attestation.credential)?;
+    let credential: Credential = serde_json::from_value(attestation.credential)?;
     let claim_hash = hex::decode(credential.root_hash.trim_start_matches("0x").trim())?;
     if claim_hash.len() != 32 {
         return Ok(HttpResponse::BadRequest().json("Claim hash has a wrong format"));
