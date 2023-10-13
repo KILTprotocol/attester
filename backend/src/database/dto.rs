@@ -13,16 +13,13 @@ pub struct Claim {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Credential {
     pub claim: Claim,
-    #[serde(rename = "claimNonceMap")]
     claim_nonce_map: serde_json::Value,
-    #[serde(rename = "claimHashes")]
     claim_hashes: Vec<Hash>,
-    #[serde(rename = "delegationId")]
     delegation_id: Option<String>,
     legitimations: Vec<Credential>,
-    #[serde(rename = "rootHash")]
     pub root_hash: Hash,
 }
 
