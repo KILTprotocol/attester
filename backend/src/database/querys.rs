@@ -44,11 +44,17 @@ fn build_pagination_query(pagination: Pagination) -> String {
         QueryBuilder::new("SELECT * FROM attestation_requests WHERE deleted_at IS NULL ");
 
     if let Some(sorting) = pagination.sort {
-        query.push(format!("ORDER BY {} {} ", sorting[0], sorting[1]));
+        query.push("ORDER BY ");
+        query.push_bind(sorting[0].clone());
+        query.push(" ");
+        query.push_bind(sorting[1].clone());
     }
 
     if let Some(offset) = pagination.offset {
-        query.push(format!("LIMIT {:?} OFFSET {:?}", offset[0], offset[1]));
+        query.push("LIMIT ");
+        query.push_bind(offset[0].to_string());
+        query.push(" OFFSET ");
+        query.push_bind(offset[1].to_string());
     }
 
     query.build().sql().into()
