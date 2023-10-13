@@ -25,6 +25,7 @@ async fn main() -> std::io::Result<()> {
     let config = configuration::init();
 
     let host_name = config.host_name.clone();
+    let port = config.port.clone();
     let db_executor = database::utils::init(&config.database_url).await;
 
     let app_state = AppState {
@@ -41,7 +42,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(app_state.clone()))
             .service(get_attestation_request_scope())
     })
-    .bind((host_name, 7777))?
+    .bind((host_name, port))?
     .run()
     .await
 }

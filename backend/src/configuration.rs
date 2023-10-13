@@ -20,6 +20,7 @@ pub struct Configuration {
     wss_address: String,
     pub host_name: String,
     pub database_url: String,
+    pub port: u16,
 }
 
 impl Configuration {
