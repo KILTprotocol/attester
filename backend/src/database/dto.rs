@@ -34,6 +34,8 @@ pub struct AttestationResponse {
     pub created_at: NaiveDateTime,
     pub deleted_at: Option<NaiveDateTime>,
     pub updated_at: Option<NaiveDateTime>,
+    pub approved_at: Option<NaiveDateTime>,
+    pub revoked_at: Option<NaiveDateTime>,
     pub ctype_hash: String,
     pub credential: serde_json::Value,
     pub claimer: String,

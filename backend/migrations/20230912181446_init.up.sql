@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS attestation_requests (
     created_at TIMESTAMP DEFAULT now()  NOT NULL,
     deleted_at TIMESTAMP,
     updated_at TIMESTAMP,
+    approved_at TIMESTAMP,
+    revoked_at TIMESTAMP,
     ctype_hash VARCHAR(255)  NOT NULL,
     credential jsonb  NOT NULL,
     claimer VARCHAR(255)  NOT NULL,
