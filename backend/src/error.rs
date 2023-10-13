@@ -28,6 +28,7 @@ impl actix_web::error::ResponseError for AppError {
         match self {
             AppError::Database(e) => match e {
                 sqlx::Error::RowNotFound => StatusCode::NOT_FOUND,
+                sqlx::Error::ColumnNotFound(_) => StatusCode::BAD_REQUEST,
                 _ => StatusCode::INTERNAL_SERVER_ERROR,
             },
             AppError::Hex(e) => match e {

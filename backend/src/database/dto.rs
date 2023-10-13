@@ -54,6 +54,7 @@ pub struct UpdateAttestation {
 
 #[derive(serde::Deserialize)]
 pub struct Pagination {
+    /// first value Limit. Second Offset.
     pub offset: Option<[u32; 2]>,
     pub sort: Option<[String; 2]>,
 }

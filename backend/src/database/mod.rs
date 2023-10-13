@@ -2,5 +2,5 @@ pub mod dto;
 pub mod querys;
 pub mod utils;
 
-#[cfg(mock)]
-pub mod mock;
+#[cfg(test)]
+pub mod test;

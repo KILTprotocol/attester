@@ -14,7 +14,7 @@ pub async fn get_attestation_request_by_id(
 ) -> Result<AttestationResponse, AppError> {
     sqlx::query_as!(
         AttestationResponse,
-        "SELECT * FROM attestation_requests WHERE id = $1",
+        "SELECT * FROM attestation_requests WHERE id = $1 AND deleted_at IS NULL",
         attestation_request_id
     )
     .fetch_one(db_executor)
@@ -23,14 +23,14 @@ pub async fn get_attestation_request_by_id(
 }
 
 pub async fn get_attestations_count(db_executor: &PgPool) -> i64 {
-    sqlx::query_scalar!("SELECT COUNT (*) FROM attestation_requests")
+    sqlx::query_scalar!("SELECT COUNT (*) FROM attestation_requests WHERE deleted_at IS NULL")
         .fetch_one(db_executor)
         .await
         .map_or(0, |count| count.unwrap())
 }
 
 pub async fn get_attestation_requests(
-    pagination: Pagination,
+    pagination: &Pagination,
     db_executor: &PgPool,
 ) -> Result<Vec<AttestationResponse>, AppError> {
     let query = build_pagination_query(pagination);
@@ -39,11 +39,11 @@ pub async fn get_attestation_requests(
         .map_err(AppError::from)
 }
 
-fn build_pagination_query(pagination: Pagination) -> String {
+pub fn build_pagination_query(pagination: &Pagination) -> String {
     let mut query: QueryBuilder<Postgres> =
         QueryBuilder::new("SELECT * FROM attestation_requests WHERE deleted_at IS NULL ");
 
-    if let Some(sorting) = pagination.sort {
+    if let Some(sorting) = &pagination.sort {
         query.push(format!("ORDER BY {} {} ", sorting[0], sorting[1]));
     }
 
@@ -91,7 +91,11 @@ pub async fn insert_attestation_request(
 ) -> Result<AttestationResponse, AppError> {
     let result = sqlx::query_as!(
         AttestationResponse,
-        "WITH CreatedRow AS (INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) RETURNING *) SELECT * FROM CreatedRow",
+        "WITH CreatedRow AS (
+            INSERT INTO attestation_requests (ctype_hash, claimer, credential) 
+            VALUES ($1, $2, $3) RETURNING *
+        ) 
+        SELECT * FROM CreatedRow",
         attestation_request.ctype_hash,
         attestation_request.claimer,
         serde_json::json!(credential)
@@ -163,7 +167,12 @@ pub async fn update_attestation_request(
 ) -> Result<AttestationResponse, AppError> {
     sqlx::query_as!(
         AttestationResponse,
-        "WITH UpdateRow AS (UPDATE attestation_requests SET credential = $1 WHERE id = $2 AND approved = false RETURNING *) SELECT * FROM UpdateRow",
+        "WITH UpdateRow AS (
+            UPDATE attestation_requests SET credential = $1 
+            WHERE id = $2 AND approved = false AND deleted_at IS NULL 
+            RETURNING *
+        ) 
+        SELECT * FROM UpdateRow",
         serde_json::json!(credential),
         attestation_request_id
     )

@@ -41,7 +41,7 @@ async fn get_attestations(
 
     let content_range = get_attestations_count(&state.db_executor).await;
 
-    let attestation_requests = get_attestation_requests(pagination, &state.db_executor).await?;
+    let attestation_requests = get_attestation_requests(&pagination, &state.db_executor).await?;
 
     let response = serde_json::json!(attestation_requests);
 
