@@ -1,7 +1,6 @@
-
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
  
-CREATE TABLE attestation_requests (
+CREATE TABLE IF NOT EXISTS attestation_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4()  NOT NULL,
     approved BOOLEAN DEFAULT false  NOT NULL,
     created_at TIMESTAMP DEFAULT now()  NOT NULL,
@@ -13,7 +12,6 @@ CREATE TABLE attestation_requests (
     revoked BOOLEAN DEFAULT false NOT NULL
 );
 
-
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -22,7 +20,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update
-BEFORE UPDATE ON attestation_requests
-FOR EACH ROW
-EXECUTE FUNCTION update_updated_at();
+-- Create the trigger only if it doesn't already exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE event_object_table = 'attestation_requests' AND trigger_name = 'update') THEN
+        CREATE TRIGGER update
+        BEFORE UPDATE ON attestation_requests
+        FOR EACH ROW
+        EXECUTE FUNCTION update_updated_at();
+    END IF;
+END $$;
