@@ -5,7 +5,7 @@ use subxt::{config::polkadot::PolkadotExtrinsicParams, config::Config};
 
 use crate::configuration::Configuration;
 use crate::error::AppError;
-use crate::utils::{calculate_signature, get_current_block, get_tx_counter};
+use crate::utils::{calculate_signature, get_current_block, get_next_tx_counter};
 
 use self::kilt::runtime_types;
 use self::kilt::runtime_types::did::did_details::DidAuthorizedCallOperation;
@@ -52,7 +52,7 @@ pub async fn create_claim(
     let api = config.get_client().await?;
     let payer = config.get_payer_signer()?;
     let payer_account = payer.account_id();
-    let tx_counter = get_tx_counter(&config).await?;
+    let tx_counter = get_next_tx_counter(&config).await?;
     let block_number = get_current_block(&config).await?;
 
     let call = RuntimeCall::Attestation(runtime_types::attestation::pallet::Call::add {
@@ -103,7 +103,7 @@ pub async fn revoke_claim(
     claim_hash: sp_core::H256,
     config: Configuration,
 ) -> Result<Vec<u8>, AppError> {
-    let tx_counter = get_tx_counter(&config).await?;
+    let tx_counter = get_next_tx_counter(&config).await?;
     let block_number = get_current_block(&config).await?;
     let payer = config.get_payer_signer()?;
     let payer_account = payer.account_id();

@@ -20,7 +20,7 @@ pub async fn get_current_block(config: &Configuration) -> Result<u64, subxt::Err
     Ok(block_number)
 }
 
-pub async fn get_tx_counter(config: &Configuration) -> Result<u64, AppError> {
+pub async fn get_next_tx_counter(config: &Configuration) -> Result<u64, AppError> {
     let api = config.get_client().await?;
     let did_doc_addr = kilt::storage().did().did(&config.get_did()?);
     let tx_counter = api
