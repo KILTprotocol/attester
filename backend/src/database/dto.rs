@@ -44,13 +44,13 @@ pub struct AttestationResponse {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AttestationRequest {
     pub ctype_hash: String,
-    pub credential: serde_json::Value,
+    pub claim: serde_json::Value,
     pub claimer: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct UpdateAttestation {
-    pub credential: serde_json::Value,
+    pub claim: serde_json::Value,
 }
 
 #[derive(serde::Deserialize)]

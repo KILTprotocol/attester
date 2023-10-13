@@ -67,7 +67,7 @@ async fn post_attestation(
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
     let attestation_request = body.into_inner();
-    let credential: Credential = serde_json::from_value(attestation_request.clone().credential)?;
+    let credential: Credential = serde_json::from_value(attestation_request.clone().claim)?;
     let attestation =
         insert_attestation_request(&attestation_request, &credential, &state.db_executor).await?;
     log::info!(" New attestation with id {:?} is created", attestation.id);
@@ -132,7 +132,7 @@ async fn update_attestation(
     let attestation_id = path.into_inner();
     let attestation_update = body.into_inner();
 
-    let credential: Credential = serde_json::from_value(attestation_update.credential)?;
+    let credential: Credential = serde_json::from_value(attestation_update.claim)?;
 
     let attestation =
         update_attestation_request(&attestation_id, &credential, &state.db_executor).await?;
