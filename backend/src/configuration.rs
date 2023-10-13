@@ -11,13 +11,13 @@ use crate::tx::KiltConfig;
 #[derive(Deserialize, Debug, Clone)]
 pub struct Configuration {
     // Seed for attester
-    pub attester_did_seed: String,
+    attester_did_seed: String,
     // Seed for payer
-    pub payer_seed: String,
+    payer_seed: String,
     // Seed for attestation key
     attester_attestation_seed: String,
     // Websocket address of network
-    pub wss_address: String,
+    wss_address: String,
     pub host_name: String,
     pub database_url: String,
 }
