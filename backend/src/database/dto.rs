@@ -78,14 +78,11 @@ pub struct Query {
 impl From<Query> for Pagination {
     fn from(value: Query) -> Self {
         Pagination {
-            offset: match &value.offset {
-                Some(offset) => serde_json::from_str(offset).ok(),
-                _ => None,
-            },
-            sort: match &value.sort {
-                Some(sort) => serde_json::from_str(sort).ok(),
-                _ => None,
-            },
+            offset: value
+                .offset
+                .and_then(|offset| serde_json::from_str(&offset).ok()),
+
+            sort: value.sort.and_then(|sort| serde_json::from_str(&sort).ok()),
         }
     }
 }
