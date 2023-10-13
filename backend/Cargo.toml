@@ -33,4 +33,6 @@ thiserror = "1.0.49"
 
 [features]
 
-mock = []
+default = ['spiritnet']
+peregrine = []
+spiritnet = []
