@@ -26,15 +26,9 @@ impl actix_web::error::ResponseError for AppError {
 
     fn status_code(&self) -> StatusCode {
         match self {
-            AppError::Database(e) => match e {
-                sqlx::Error::RowNotFound => StatusCode::NOT_FOUND,
-                _ => StatusCode::INTERNAL_SERVER_ERROR,
-            },
-            AppError::Hex(e) => match e {
-                hex::FromHexError::InvalidHexCharacter { .. } => StatusCode::BAD_REQUEST,
-                hex::FromHexError::InvalidStringLength => StatusCode::BAD_REQUEST,
-                _ => StatusCode::INTERNAL_SERVER_ERROR,
-            },
+            AppError::Database(sqlx::Error::RowNotFound) => StatusCode::NOT_FOUND,
+            AppError::Hex(hex::FromHexError::InvalidHexCharacter { .. }) => StatusCode::BAD_REQUEST,
+            AppError::Hex(hex::FromHexError::InvalidStringLength) => StatusCode::BAD_REQUEST,
             AppError::Json(e) => match e.classify() {
                 Category::Data => StatusCode::BAD_REQUEST,
                 Category::Syntax => StatusCode::BAD_REQUEST,
