@@ -1,5 +1,5 @@
 use crate::{
-    database::dto::{AttestationResponse, Pagination},
+    database::dto::{AttestationResponse, Pagination, TxState},
     error::AppError,
 };
 
@@ -14,8 +14,9 @@ pub async fn get_attestation_request_by_id(
 ) -> Result<AttestationResponse, AppError> {
     sqlx::query_as!(
         AttestationResponse,
-        "SELECT * FROM attestation_requests WHERE id = $1",
-        attestation_request_id
+        r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState"
+        FROM attestation_requests WHERE id = $1"#,
+        attestation_request_id,
     )
     .fetch_one(db_executor)
     .await
@@ -92,7 +93,8 @@ pub async fn insert_attestation_request(
 ) -> Result<AttestationResponse, AppError> {
     let result = sqlx::query_as!(
         AttestationResponse,
-        "INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) RETURNING *",
+        r#"INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) 
+        RETURNING  id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState""#,
         attestation_request.ctype_hash,
         attestation_request.claimer,
         serde_json::json!(credential)
@@ -109,7 +111,8 @@ pub async fn can_approve_attestation(
 ) -> Result<AttestationResponse, AppError> {
     sqlx::query_as!(
         AttestationResponse,
-        "SELECT * FROM attestation_requests WHERE id = $1 AND approved = false AND revoked = false",
+        r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState" 
+        FROM attestation_requests WHERE id = $1 AND approved = false AND revoked = false"#,
         attestation_request_id
     )
     .fetch_one(db_executor)
@@ -136,7 +139,8 @@ pub async fn can_revoke_attestation(
 ) -> Result<AttestationResponse, AppError> {
     sqlx::query_as!(
         AttestationResponse,
-        "SELECT * FROM attestation_requests WHERE id = $1 AND approved = true AND revoked = false",
+        r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState" 
+        FROM attestation_requests WHERE id = $1 AND approved = true AND revoked = false"#,
         attestation_request_id
     )
     .fetch_one(db_executor)
@@ -164,7 +168,8 @@ pub async fn update_attestation_request(
 ) -> Result<AttestationResponse, AppError> {
     sqlx::query_as!(
         AttestationResponse,
-        "UPDATE attestation_requests SET credential = $1 WHERE id = $2 AND approved = false RETURNING *",
+        r#"UPDATE attestation_requests SET credential = $1 WHERE id = $2 AND approved = false 
+        RETURNING id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState""#,
         serde_json::json!(credential),
         attestation_request_id
     )

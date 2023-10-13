@@ -26,11 +26,12 @@ pub struct Credential {
     pub root_hash: Hash,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "tx_states")]
 pub enum TxState {
     InFlight,
     InBlock,
-    Succeded,
+    Succeeded,
     Failed,
 }
 
@@ -47,7 +48,7 @@ pub struct AttestationResponse {
     pub ctype_hash: String,
     pub credential: serde_json::Value,
     pub claimer: String,
-    pub tx_state: TxState,
+    pub tx_state: Option<TxState>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
