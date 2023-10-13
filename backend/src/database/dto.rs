@@ -26,6 +26,14 @@ pub struct Credential {
     pub root_hash: Hash,
 }
 
+#[derive(Serialize, Deserialize)]
+pub enum TxState {
+    InFlight,
+    InBlock,
+    Succeded,
+    Failed,
+}
+
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct AttestationResponse {
     pub id: Uuid,
@@ -39,6 +47,7 @@ pub struct AttestationResponse {
     pub ctype_hash: String,
     pub credential: serde_json::Value,
     pub claimer: String,
+    pub tx_state: TxState,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
