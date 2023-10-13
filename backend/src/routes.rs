@@ -29,7 +29,7 @@ async fn get_attestation(
 
     let attesttation = get_attestation_request_by_id(&attestation_id, &state.db_executor).await?;
 
-    Ok(HttpResponse::Ok().json(serde_json::json!(attesttation)))
+    Ok(HttpResponse::Ok().json(serde_json::to_string(&attesttation)?))
 }
 
 #[get("")]
@@ -43,7 +43,7 @@ async fn get_attestations(
 
     let attestation_requests = get_attestation_requests(pagination, &state.db_executor).await?;
 
-    let response = serde_json::json!(attestation_requests);
+    let response = serde_json::to_string(&attestation_requests)?;
 
     Ok(HttpResponse::Ok()
         .insert_header(("Content-Range", content_range))
@@ -139,7 +139,7 @@ async fn update_attestation(
 
     log::info!("Attestation with id {:?} is updated", attestation_id);
 
-    Ok(HttpResponse::Ok().json(serde_json::json!(attestation)))
+    Ok(HttpResponse::Ok().json(serde_json::to_string(&attestation)?))
 }
 
 pub(crate) fn get_attestation_request_scope() -> Scope {
