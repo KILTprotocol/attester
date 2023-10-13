@@ -64,12 +64,7 @@ async fn get_attestations(
     query: &str,
     db_executor: &PgPool,
 ) -> Result<Vec<AttestationResponse>, sqlx::Error> {
-    let query_result = sqlx::query(query).fetch_all(db_executor).await;
-
-    let attestation_rows = match query_result {
-        Ok(rows) => Ok(rows),
-        Err(e) => Err(e),
-    }?;
+    let attestation_rows = sqlx::query(query).fetch_all(db_executor).await?;
 
     attestation_rows
         .into_iter()
