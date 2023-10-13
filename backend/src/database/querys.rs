@@ -92,7 +92,7 @@ pub async fn insert_attestation_request(
 ) -> Result<AttestationResponse, AppError> {
     let result = sqlx::query_as!(
         AttestationResponse,
-        "WITH CreatedRow AS (INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) RETURNING *) SELECT * FROM CreatedRow",
+        "INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) RETURNING *",
         attestation_request.ctype_hash,
         attestation_request.claimer,
         serde_json::json!(credential)
@@ -164,7 +164,7 @@ pub async fn update_attestation_request(
 ) -> Result<AttestationResponse, AppError> {
     sqlx::query_as!(
         AttestationResponse,
-        "WITH UpdateRow AS (UPDATE attestation_requests SET credential = $1 WHERE id = $2 AND approved = false RETURNING *) SELECT * FROM UpdateRow",
+        "UPDATE attestation_requests SET credential = $1 WHERE id = $2 AND approved = false RETURNING *",
         serde_json::json!(credential),
         attestation_request_id
     )
