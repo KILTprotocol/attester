@@ -7,6 +7,7 @@ pub mod utils;
 
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
+use clap::Parser;
 use configuration::Configuration;
 use sqlx::{Pool, Postgres};
 
@@ -22,7 +23,7 @@ pub struct AppState {
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
 
-    let config = configuration::init();
+    let config = Configuration::parse();
 
     let host_name = config.host_name.clone();
     let port = config.port.clone();
