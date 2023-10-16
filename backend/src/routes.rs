@@ -10,7 +10,7 @@ use crate::{
     database::{
         dto::{AttestationRequest, Credential, Query, UpdateAttestation},
         querys::{
-            approve_attestation_request, can_approve_attestation, can_revoke_attestation,
+            approve_attestation_request_tx, can_approve_attestation_tx, can_revoke_attestation,
             delete_attestation_request, get_attestation_request_by_id, get_attestation_requests,
             get_attestations_count, insert_attestation_request, revoke_attestation_request,
             update_attestation_request,
@@ -80,7 +80,8 @@ async fn approve_attestation(
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
     let attestation_id = path.into_inner();
-    let attestation = can_approve_attestation(&attestation_id, &state.db_executor).await?;
+    let mut tx = state.db_executor.begin().await?;
+    let attestation = can_approve_attestation_tx(&attestation_id, &mut tx).await?;
     let credential: Credential = serde_json::from_value(attestation.credential)?;
     let ctype_hash = hex::decode(credential.claim.ctype_hash.trim_start_matches("0x").trim())?;
     let claim_hash = hex::decode(credential.root_hash.trim_start_matches("0x").trim())?;
@@ -95,7 +96,8 @@ async fn approve_attestation(
     )
     .await?;
 
-    approve_attestation_request(&attestation_id, &state.db_executor).await?;
+    approve_attestation_request_tx(&attestation_id, &mut tx).await?;
+    tx.commit().await?;
     log::info!("Attestation with id {:?} is approved", attestation_id);
     Ok(HttpResponse::Ok().json("ok"))
 }
@@ -106,9 +108,8 @@ async fn revoke_attestation(
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
     let attestation_id = path.into_inner();
-
-    let attestation = can_revoke_attestation(&attestation_id, &state.db_executor).await?;
-
+    let mut tx = state.db_executor.begin().await?;
+    let attestation = can_revoke_attestation(&attestation_id, &mut tx).await?;
     let credential: Credential = serde_json::from_value(attestation.credential)?;
     let claim_hash = hex::decode(credential.root_hash.trim_start_matches("0x").trim())?;
     if claim_hash.len() != 32 {
@@ -116,7 +117,7 @@ async fn revoke_attestation(
     }
 
     crate::tx::revoke_claim(H256::from_slice(&claim_hash), state.config.clone()).await?;
-    revoke_attestation_request(&attestation_id, &state.db_executor).await?;
+    revoke_attestation_request(&attestation_id, &mut tx).await?;
 
     log::info!("Attestation with id {:?} is revoked", attestation_id);
 

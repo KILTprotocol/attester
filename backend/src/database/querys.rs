@@ -105,9 +105,9 @@ pub async fn insert_attestation_request(
     result.map_err(AppError::from)
 }
 
-pub async fn can_approve_attestation(
+pub async fn can_approve_attestation_tx(
     attestation_request_id: &Uuid,
-    db_executor: &PgPool,
+    tx: &mut sqlx::Transaction<'_, Postgres>,
 ) -> Result<AttestationResponse, AppError> {
     sqlx::query_as!(
         AttestationResponse,
@@ -115,27 +115,27 @@ pub async fn can_approve_attestation(
         FROM attestation_requests WHERE id = $1 AND approved = false AND revoked = false"#,
         attestation_request_id
     )
-    .fetch_one(db_executor)
+    .fetch_one(&mut **tx)
     .await
     .map_err(AppError::from)
 }
 
-pub async fn approve_attestation_request(
+pub async fn approve_attestation_request_tx(
     attestation_request_id: &Uuid,
-    db_executor: &PgPool,
+    tx: &mut sqlx::Transaction<'_, Postgres>,
 ) -> Result<PgQueryResult, AppError> {
     sqlx::query!(
         "UPDATE attestation_requests SET approved = true WHERE id = $1",
         attestation_request_id
     )
-    .execute(db_executor)
+    .execute(&mut **tx)
     .await
     .map_err(AppError::from)
 }
 
 pub async fn can_revoke_attestation(
     attestation_request_id: &Uuid,
-    db_executor: &PgPool,
+    tx: &mut sqlx::Transaction<'_, Postgres>,
 ) -> Result<AttestationResponse, AppError> {
     sqlx::query_as!(
         AttestationResponse,
@@ -143,20 +143,20 @@ pub async fn can_revoke_attestation(
         FROM attestation_requests WHERE id = $1 AND approved = true AND revoked = false"#,
         attestation_request_id
     )
-    .fetch_one(db_executor)
+    .fetch_one(&mut **tx)
     .await
     .map_err(AppError::from)
 }
 
 pub async fn revoke_attestation_request(
     attestation_request_id: &Uuid,
-    db_executor: &PgPool,
+    tx: &mut sqlx::Transaction<'_, Postgres>,
 ) -> Result<PgQueryResult, AppError> {
     sqlx::query!(
         "UPDATE attestation_requests SET revoked = true WHERE id = $1",
         attestation_request_id
     )
-    .execute(db_executor)
+    .execute(&mut **tx)
     .await
     .map_err(AppError::from)
 }
