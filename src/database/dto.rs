@@ -23,7 +23,7 @@ pub struct Credential {
     pub root_hash: Hash,
 }
 
-#[derive(Serialize, Deserialize, sqlx::Type)]
+#[derive(Serialize, Deserialize, sqlx::Type, Clone)]
 #[sqlx(type_name = "tx_states")]
 pub enum TxState {
     InFlight,
@@ -32,7 +32,7 @@ pub enum TxState {
     Failed,
 }
 
-#[derive(Serialize, Deserialize, FromRow)]
+#[derive(Serialize, Deserialize, FromRow, Clone)]
 pub struct AttestationResponse {
     pub id: Uuid,
     pub approved: bool,
@@ -64,12 +64,14 @@ pub struct UpdateAttestation {
 pub struct Pagination {
     pub offset: Option<[u32; 2]>,
     pub sort: Option<[String; 2]>,
+    pub filter: Option<String>,
 }
 
 #[derive(serde::Deserialize, Clone)]
 pub struct Query {
     pub offset: Option<String>,
     pub sort: Option<String>,
+    pub filter: Option<String>,
 }
 
 impl From<Query> for Pagination {
@@ -80,6 +82,9 @@ impl From<Query> for Pagination {
                 .and_then(|offset| serde_json::from_str(&offset).ok()),
 
             sort: value.sort.and_then(|sort| serde_json::from_str(&sort).ok()),
+            filter: value
+                .filter
+                .and_then(|filter| serde_json::from_str(&filter).ok()),
         }
     }
 }

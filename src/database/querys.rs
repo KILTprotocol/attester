@@ -3,7 +3,7 @@ use crate::{
     error::AppError,
 };
 
-use sqlx::{postgres::PgQueryResult, Execute, FromRow, PgPool, Postgres, QueryBuilder};
+use sqlx::{postgres::PgQueryResult, PgPool, Postgres, QueryBuilder};
 use uuid::Uuid;
 
 use super::dto::{AttestationRequest, Credential};
@@ -34,43 +34,53 @@ pub async fn get_attestation_requests(
     pagination: Pagination,
     db_executor: &PgPool,
 ) -> Result<Vec<AttestationResponse>, AppError> {
-    let query = build_pagination_query(pagination);
-    get_attestations(&query, db_executor)
+    let (query, bind_values) = construct_query(&pagination);
+    get_attestations(&query, bind_values, db_executor)
         .await
         .map_err(AppError::from)
 }
 
-fn build_pagination_query(pagination: Pagination) -> String {
-    let mut query: QueryBuilder<Postgres> =
-        QueryBuilder::new("SELECT * FROM attestation_requests WHERE deleted_at IS NULL ");
+pub fn construct_query(pagination: &Pagination) -> (String, Vec<String>) {
+    let mut query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM attestation_requests");
+    let mut bind_values: Vec<String> = Vec::new();
 
-    if let Some(sorting) = pagination.sort {
-        query.push("ORDER BY ");
-        query.push_bind(sorting[0].clone());
-        query.push(" ");
-        query.push_bind(sorting[1].clone());
+    if let Some(filter) = &pagination.filter {
+        query.push(" WHERE claimer =");
+        query.push_bind(filter.clone());
+        bind_values.push(filter.clone());
     }
 
-    if let Some(offset) = pagination.offset {
-        query.push("LIMIT ");
-        query.push_bind(offset[0].to_string());
+    if let Some(sort) = &pagination.sort {
+        query.push(" ORDER BY ");
+        query.push_bind(sort[0].clone());
+        query.push(if sort[1] == "ASC" { " ASC" } else { " DESC" });
+        bind_values.push(sort[0].clone());
+    }
+
+    if let Some(offset) = &pagination.offset {
         query.push(" OFFSET ");
+        query.push_bind(offset[0].to_string());
+        query.push(" LIMIT ");
         query.push_bind(offset[1].to_string());
+        bind_values.push(offset[0].to_string());
+        bind_values.push(offset[1].to_string());
     }
 
-    query.build().sql().into()
+    (query.into_sql(), bind_values)
 }
 
 async fn get_attestations(
-    query: &str,
+    query_string: &str,
+    bind_values: Vec<String>,
     db_executor: &PgPool,
 ) -> Result<Vec<AttestationResponse>, sqlx::Error> {
-    let attestation_rows = sqlx::query(query).fetch_all(db_executor).await?;
+    let mut query = sqlx::query_as::<_, AttestationResponse>(&query_string);
 
-    attestation_rows
-        .into_iter()
-        .map(|attestation| AttestationResponse::from_row(&attestation))
-        .collect()
+    for value in bind_values {
+        query = query.bind(value);
+    }
+
+    query.fetch_all(db_executor).await
 }
 
 pub async fn delete_attestation_request(

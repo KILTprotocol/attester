@@ -19,7 +19,7 @@ pub async fn init(database_url: &str) -> Pool<Postgres> {
 
 pub async fn connect(database_url: &str) -> Result<Pool<Postgres>, sqlx::Error> {
     let pool = PgPoolOptions::new()
-        .max_connections(5)
+        .max_connections(20)
         .connect(database_url)
         .await?;
     Ok(pool)

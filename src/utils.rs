@@ -1,9 +1,14 @@
+use actix_web::web::ReqData;
+use sqlx::PgPool;
 use subxt::ext::sp_core::{crypto::SecretStringError, Pair};
+use uuid::Uuid;
 
 use crate::{
     configuration::Configuration,
+    database::{dto::AttestationResponse, querys::get_attestation_request_by_id},
     error::AppError,
     tx::kilt::{self, runtime_types::did::did_details::DidSignature},
+    User,
 };
 
 pub async fn get_current_block(config: &Configuration) -> Result<u64, subxt::Error> {
@@ -43,4 +48,38 @@ pub fn calculate_signature(
     Ok(DidSignature::Sr25519(
         kilt::runtime_types::sp_core::sr25519::Signature(signed_data.into()),
     ))
+}
+
+pub fn is_user_allowed_to_see_data(
+    user: ReqData<User>,
+    attestatations: &Vec<AttestationResponse>,
+) -> Result<(), actix_web::Error> {
+    let user_ids = attestatations
+        .iter()
+        .map(|a| &a.claimer)
+        .all(|claimer| claimer == &user.id);
+
+    if user_ids || user.is_admin {
+        Ok(())
+    } else {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allow to see data",
+        ))
+    }
+}
+
+pub async fn is_user_allowed_to_update_data(
+    user: ReqData<User>,
+    attestation_id: &Uuid,
+    db_executor: &PgPool,
+) -> Result<(), actix_web::Error> {
+    let attestation = get_attestation_request_by_id(attestation_id, db_executor).await?;
+
+    if attestation.claimer == user.id || user.is_admin {
+        Ok(())
+    } else {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allow to see data",
+        ))
+    }
 }

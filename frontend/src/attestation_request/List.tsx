@@ -17,6 +17,7 @@ import Tooltip from "@mui/material/Tooltip";
 import axios from "axios";
 import { AttestationRequsts } from "../types";
 import { useState } from "react";
+import { isUserAdmin } from "../utils";
 
 const ExpandAttestation = () => {
   const record = useRecordContext<AttestationRequsts>();
@@ -114,8 +115,8 @@ export const AttestationList = () => {
           source="ctype_hash"
           baseURL="https://ctypehub.galaniprojects.de/ctype/"
         />
-        <ApproveButton />
-        <RevokeButton />
+        {isUserAdmin() && <ApproveButton />}
+        {isUserAdmin() && <RevokeButton />}
         <EditButton />
       </Datagrid>
     </List>

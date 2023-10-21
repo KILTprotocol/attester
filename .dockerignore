@@ -1,2 +1,6 @@
 .vscode
 target
+/node_modules/
+.env
+
+

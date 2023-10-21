@@ -19,7 +19,7 @@ const Login = () => {
     let url = new URL(import.meta.env.VITE_AUTH_URL);
     url.searchParams.append("response_type", "id_token");
     url.searchParams.append("client_id", import.meta.env.VITE_CLIENT_ID);
-    url.searchParams.append("redirect_uri", window.location.href);
+    url.searchParams.append("redirect_uri", window.location.origin + "/#/login");
     url.searchParams.append("scope", "openid");
     url.searchParams.append("state", state);
     url.searchParams.append("nonce", nonce);

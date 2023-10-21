@@ -29,6 +29,8 @@ pub struct Configuration {
     pub database_url: String,
     #[clap(env)]
     pub port: u16,
+    #[clap(env)]
+    pub jwt_secret: String,
 }
 
 impl Configuration {
