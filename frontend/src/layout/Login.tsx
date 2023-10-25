@@ -14,11 +14,15 @@ import authProvider from "../authProvider";
 const Login = () => {
 
   const handleSubmit = useCallback(() => {
+    let clientId;
     const nonce = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    if (window.location.href.includes("client_id")) {
+      clientId = window.location.hash.slice(8).split("=")[1]
+    }
     let url = new URL(import.meta.env.VITE_AUTH_URL);
     url.searchParams.append("response_type", "id_token");
-    url.searchParams.append("client_id", import.meta.env.VITE_CLIENT_ID);
+    url.searchParams.append("client_id", clientId ? clientId : import.meta.env.VITE_CLIENT_ID);
     url.searchParams.append("redirect_uri", window.location.origin + "/#/login");
     url.searchParams.append("scope", "openid");
     url.searchParams.append("state", state);
@@ -36,6 +40,7 @@ const Login = () => {
 
   return (
     <Form onSubmit={handleSubmit} noValidate>
+
       <Box
         sx={{
           display: "flex",

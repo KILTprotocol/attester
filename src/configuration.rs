@@ -31,6 +31,8 @@ pub struct Configuration {
     pub port: u16,
     #[clap(env)]
     pub jwt_secret: String,
+    #[clap(env)]
+    pub front_end_path: String,
 }
 
 impl Configuration {

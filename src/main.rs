@@ -90,6 +90,7 @@ async fn main() -> std::io::Result<()> {
 
     let host_name = config.host_name.clone();
     let port = config.port.clone();
+    let front_end_path = config.front_end_path.clone();
     let db_executor = database::connection::init(&config.database_url).await;
 
     let app_state = AppState {
@@ -103,11 +104,11 @@ async fn main() -> std::io::Result<()> {
         let auth = HttpAuthentication::bearer(jwt_validator);
 
         App::new()
-            .wrap(auth)
+            .app_data(web::Data::new(app_state.clone()))
             .wrap(cors)
             .wrap(logger)
-            .app_data(web::Data::new(app_state.clone()))
-            .service(get_attestation_request_scope())
+            .service(get_attestation_request_scope().wrap(auth))
+            .service(actix_files::Files::new("/", &front_end_path).index_file("index.html"))
     })
     .bind((host_name, port))?
     .run()

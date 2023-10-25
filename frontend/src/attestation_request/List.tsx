@@ -14,10 +14,10 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import CircularProgress from "@mui/material/CircularProgress";
 import Tooltip from "@mui/material/Tooltip";
 
-import axios from "axios";
 import { AttestationRequsts } from "../types";
 import { useState } from "react";
 import { isUserAdmin } from "../utils";
+import { getAxiosClient } from "../dataProvider";
 
 const ExpandAttestation = () => {
   const record = useRecordContext<AttestationRequsts>();
@@ -36,10 +36,9 @@ const ApproveButton = () => {
     }
 
     setIsLoading(true);
-    const data = { credential: record.credential, approved: true };
-    await axios.put(
+    let client = await getAxiosClient();
+    await client.put(
       apiURL + "/attestation_request/" + record.id + "/approve",
-      data
     );
     setIsLoading(false);
     notify("Attestation is approved");
@@ -55,7 +54,7 @@ const ApproveButton = () => {
         onClick={handleClick}
         sx={{ marginLeft: "1em", marginRight: "1em" }}
       >
-        {isLoading ? <CircularProgress color="info" /> : <DoneIcon />}
+        {isLoading ? <CircularProgress color="error" /> : <DoneIcon />}
       </Fab>
     </Tooltip>
   );
@@ -72,10 +71,10 @@ const RevokeButton = () => {
       return;
     }
     setIsLoading(true);
-    const data = { credential: record.credential, approved: true };
-    await axios.put(
+    let client = await getAxiosClient();
+
+    await client.put(
       apiURL + "/attestation_request/" + record.id + "/revoke",
-      data
     );
     setIsLoading(false);
     notify("Attestation is revoked");
@@ -87,12 +86,13 @@ const RevokeButton = () => {
         color="error"
         aria-label="revoke"
         size="small"
+
         disabled={!record.approved || record.revoked}
         onClick={handleClick}
         sx={{ marginLeft: "1em", marginRight: "1em" }}
       >
-        <RemoveIcon />
-        {isLoading && <CircularProgress />}
+
+        {isLoading ? <CircularProgress /> : <RemoveIcon />}
       </Fab>
     </Tooltip>
   );

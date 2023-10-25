@@ -30,6 +30,7 @@ pub enum TxState {
     InBlock,
     Succeeded,
     Failed,
+    Pending,
 }
 
 #[derive(Serialize, Deserialize, FromRow, Clone)]
@@ -87,4 +88,18 @@ impl From<Query> for Pagination {
                 .and_then(|filter| serde_json::from_str(&filter).ok()),
         }
     }
+}
+
+#[derive(Serialize)]
+pub struct AttestationCreatedOverTime {
+    pub date: Option<NaiveDateTime>,
+    pub total_attestations_created: Option<i64>,
+}
+
+#[derive(Serialize)]
+pub struct AttestationKPIs {
+    pub attestations_created_over_time: Vec<AttestationCreatedOverTime>,
+    pub attestations_not_approved: i64,
+    pub attestations_revoked: i64,
+    pub total_claimers: i64,
 }

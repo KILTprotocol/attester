@@ -10,10 +10,10 @@ use crate::{
     database::{
         dto::{AttestationRequest, Credential, Pagination, Query, UpdateAttestation},
         querys::{
-            approve_attestation_request_tx, can_approve_attestation_tx, can_revoke_attestation,
-            delete_attestation_request, get_attestation_request_by_id, get_attestation_requests,
-            get_attestations_count, insert_attestation_request, revoke_attestation_request,
-            update_attestation_request,
+            approve_attestation_request_tx, attestation_requests_kpis, can_approve_attestation_tx,
+            can_revoke_attestation, delete_attestation_request, get_attestation_request_by_id,
+            get_attestation_requests, get_attestations_count, insert_attestation_request,
+            revoke_attestation_request, update_attestation_request,
         },
     },
     error::AppError,
@@ -40,11 +40,9 @@ async fn get_attestations(
     pagination_query: web::Query<Query>,
 ) -> Result<HttpResponse, AppError> {
     let mut pagination: Pagination = pagination_query.into_inner().into();
-
     if !user.is_admin {
         pagination.filter = Some(user.id.to_string());
     }
-
     let content_range = get_attestations_count(&state.db_executor).await;
     let attestation_requests = get_attestation_requests(pagination, &state.db_executor).await?;
     let response = serde_json::to_value(&attestation_requests)?;
@@ -131,6 +129,7 @@ async fn revoke_attestation(
 
     crate::tx::revoke_claim(H256::from_slice(&claim_hash), state.config.clone()).await?;
     revoke_attestation_request(&attestation_id, &mut tx).await?;
+    tx.commit().await?;
 
     log::info!("Attestation with id {:?} is revoked", attestation_id);
 
@@ -159,6 +158,12 @@ async fn update_attestation(
     Ok(HttpResponse::Ok().json(serde_json::to_value(&attestation)?))
 }
 
+#[get("/metric/kpis")]
+async fn get_attestation_kpis(state: web::Data<AppState>) -> Result<HttpResponse, AppError> {
+    let kpis = attestation_requests_kpis(&state.db_executor).await?;
+    Ok(HttpResponse::Ok().json(serde_json::to_value(kpis)?))
+}
+
 pub(crate) fn get_attestation_request_scope() -> Scope {
     web::scope("/api/v1/attestation_request")
         .service(approve_attestation)
@@ -168,4 +173,5 @@ pub(crate) fn get_attestation_request_scope() -> Scope {
         .service(delete_attestation)
         .service(update_attestation)
         .service(revoke_attestation)
+        .service(get_attestation_kpis)
 }

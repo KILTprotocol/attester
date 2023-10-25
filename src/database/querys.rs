@@ -1,5 +1,7 @@
 use crate::{
-    database::dto::{AttestationResponse, Pagination, TxState},
+    database::dto::{
+        AttestationCreatedOverTime, AttestationKPIs, AttestationResponse, Pagination, TxState,
+    },
     error::AppError,
 };
 
@@ -135,7 +137,7 @@ pub async fn approve_attestation_request_tx(
     tx: &mut sqlx::Transaction<'_, Postgres>,
 ) -> Result<PgQueryResult, AppError> {
     sqlx::query!(
-        "UPDATE attestation_requests SET approved = true WHERE id = $1",
+        "UPDATE attestation_requests SET approved = true, tx_state = 'Succeeded', approved_at = NOW() WHERE id = $1",
         attestation_request_id
     )
     .execute(&mut **tx)
@@ -163,7 +165,7 @@ pub async fn revoke_attestation_request(
     tx: &mut sqlx::Transaction<'_, Postgres>,
 ) -> Result<PgQueryResult, AppError> {
     sqlx::query!(
-        "UPDATE attestation_requests SET revoked = true WHERE id = $1",
+        "UPDATE attestation_requests SET revoked = true, revoked_at = NOW() WHERE id = $1",
         attestation_request_id
     )
     .execute(&mut **tx)
@@ -186,4 +188,41 @@ pub async fn update_attestation_request(
     .fetch_one(db_executor)
     .await
     .map_err(AppError::from)
+}
+
+pub async fn attestation_requests_kpis(pool: &PgPool) -> Result<AttestationKPIs, sqlx::Error> {
+    let attestations_created_over_time = sqlx::query_as!(
+        AttestationCreatedOverTime,
+        "SELECT date_trunc('day', created_at) AS date, COUNT(*) AS total_attestations_created
+         FROM attestation_requests
+         GROUP BY date
+         ORDER BY date;",
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let attestations_not_approved =
+        sqlx::query_scalar!("SELECT COUNT(*) FROM attestation_requests WHERE approved = FALSE;")
+            .fetch_one(pool)
+            .await
+            .map_or(0, |count| count.unwrap());
+
+    let attestations_revoked =
+        sqlx::query_scalar!("SELECT COUNT(*) FROM attestation_requests WHERE revoked = TRUE;")
+            .fetch_one(pool)
+            .await
+            .map_or(0, |count| count.unwrap());
+
+    let total_claimers =
+        sqlx::query_scalar!("SELECT COUNT(DISTINCT claimer) FROM attestation_requests;")
+            .fetch_one(pool)
+            .await
+            .map_or(0, |count| count.unwrap());
+
+    Ok(AttestationKPIs {
+        attestations_created_over_time,
+        attestations_not_approved,
+        attestations_revoked,
+        total_claimers,
+    })
 }

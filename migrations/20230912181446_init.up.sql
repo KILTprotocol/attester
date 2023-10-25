@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
  
-CREATE TYPE tx_states AS ENUM ('InFlight', 'InBlock', 'Succeeded', 'Failed'); 
+CREATE TYPE tx_states AS ENUM ('InFlight', 'InBlock', 'Succeeded', 'Failed', 'Pending' ); 
 
 CREATE TABLE IF NOT EXISTS attestation_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4()  NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS attestation_requests (
     credential jsonb  NOT NULL,
     claimer VARCHAR(255)  NOT NULL,
     revoked BOOLEAN DEFAULT false NOT NULL,
-    tx_state tx_states
+    tx_state tx_states DEFAULT 'Pending'
 );
 
 CREATE OR REPLACE FUNCTION update_updated_at()
