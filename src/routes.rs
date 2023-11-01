@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::{
     database::{
-        dto::{AttestationRequest, Credential, Pagination, Query, UpdateAttestation},
+        dto::{Credential, Pagination, Query},
         querys::{
             approve_attestation_request_tx, attestation_requests_kpis, can_approve_attestation_tx,
             can_revoke_attestation, delete_attestation_request, get_attestation_request_by_id,
@@ -68,13 +68,15 @@ async fn delete_attestation(
 
 #[post("")]
 async fn post_attestation(
-    body: web::Json<AttestationRequest>,
+    body: web::Json<Credential>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
-    let attestation_request = body.into_inner();
-    let credential: Credential = serde_json::from_value(attestation_request.clone().claim)?;
+    let claim_request = body.into_inner();
+    let claimer = &claim_request.claim.owner;
+    let ctype = &format!("kilt:ctype:{}", claim_request.claim.ctype_hash);
+
     let attestation =
-        insert_attestation_request(&attestation_request, &credential, &state.db_executor).await?;
+        insert_attestation_request(ctype, claimer, &claim_request, &state.db_executor).await?;
     log::info!(" New attestation with id {:?} is created", attestation.id);
     Ok(HttpResponse::Ok().json(attestation))
 }
@@ -141,14 +143,12 @@ async fn update_attestation(
     path: web::Path<Uuid>,
     state: web::Data<AppState>,
     user: ReqData<User>,
-    body: web::Json<UpdateAttestation>,
+    body: web::Json<Credential>,
 ) -> Result<HttpResponse, AppError> {
     let attestation_id = path.into_inner();
     is_user_allowed_to_update_data(user, &attestation_id, &state.db_executor).await?;
 
-    let attestation_update = body.into_inner();
-
-    let credential: Credential = serde_json::from_value(attestation_update.claim)?;
+    let credential = body.into_inner();
 
     let attestation =
         update_attestation_request(&attestation_id, &credential, &state.db_executor).await?;

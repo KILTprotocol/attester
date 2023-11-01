@@ -2,8 +2,6 @@ use serde::{Deserialize, Serialize};
 use sqlx::{types::chrono::NaiveDateTime, FromRow};
 use uuid::Uuid;
 
-pub type Hash = String;
-
 #[derive(Serialize, Deserialize)]
 pub struct Claim {
     #[serde(rename = "cTypeHash")]
@@ -17,10 +15,10 @@ pub struct Claim {
 pub struct Credential {
     pub claim: Claim,
     claim_nonce_map: serde_json::Value,
-    claim_hashes: Vec<Hash>,
+    claim_hashes: Vec<String>,
     delegation_id: Option<String>,
-    legitimations: Vec<Credential>,
-    pub root_hash: Hash,
+    legitimations: Option<Vec<Credential>>,
+    pub root_hash: String,
 }
 
 #[derive(Serialize, Deserialize, sqlx::Type, Clone)]
@@ -47,18 +45,6 @@ pub struct AttestationResponse {
     pub credential: serde_json::Value,
     pub claimer: String,
     pub tx_state: Option<TxState>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct AttestationRequest {
-    pub ctype_hash: String,
-    pub claim: serde_json::Value,
-    pub claimer: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct UpdateAttestation {
-    pub claim: serde_json::Value,
 }
 
 #[derive(serde::Deserialize)]

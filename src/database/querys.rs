@@ -8,7 +8,7 @@ use crate::{
 use sqlx::{postgres::PgQueryResult, PgPool, Postgres, QueryBuilder};
 use uuid::Uuid;
 
-use super::dto::{AttestationRequest, Credential};
+use super::dto::Credential;
 
 pub async fn get_attestation_request_by_id(
     attestation_request_id: &Uuid,
@@ -99,7 +99,8 @@ pub async fn delete_attestation_request(
 }
 
 pub async fn insert_attestation_request(
-    attestation_request: &AttestationRequest,
+    ctype_hash: &str,
+    claimer: &str,
     credential: &Credential,
     db_executor: &PgPool,
 ) -> Result<AttestationResponse, AppError> {
@@ -107,8 +108,8 @@ pub async fn insert_attestation_request(
         AttestationResponse,
         r#"INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) 
         RETURNING  id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState""#,
-        attestation_request.ctype_hash,
-        attestation_request.claimer,
+        ctype_hash,
+        claimer,
         serde_json::json!(credential)
     )
     .fetch_one(db_executor)

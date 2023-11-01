@@ -1,0 +1,44 @@
+version: '3'
+services:
+  db:
+    image: postgres:latest
+    container_name: my_postgres
+    environment:
+      POSTGRES_DB: attester
+      POSTGRES_USER: dena
+      POSTGRES_PASSWORD: secrect
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    image: test
+    container_name: my_backend
+    environment:
+      ATTESTER_DID_SEED: "analyst bomb away undo globe believe quiz aisle shrug mail parade emerge"
+      ATTESTER_ATTESTATION_SEED: "analyst bomb away undo globe believe quiz aisle shrug mail parade emerge"
+      PAYER_SEED: "vibrant supreme service cat pig middle crazy notice prison head flip eye"
+      HOST_NAME: "0.0.0.0"
+      WSS_ADDRESS: "wss://peregrine.kilt.io:443/parachain-public-ws"
+      DATABASE_URL: "postgres://dena:secrect@db:5432/attester" # Updated database URL
+      RUST_LOG: "info,debug,error,warn"
+      JWT_SECRET: "super-secret-jwt-secret"
+      FRONT_END_PATH: "/usr/share/nginx/html"
+      PORT: 7777
+
+    depends_on:
+      - db
+    ports:
+      - "7777:7777" # Adjust the port as needed
+    networks:
+      - backend_network # Create a custom network to connect backend and database
+
+volumes:
+  postgres_data:
+
+
+networks:
+  backend_network:
+
+

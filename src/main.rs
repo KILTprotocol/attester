@@ -71,8 +71,14 @@ async fn jwt_validator(
         )
     })?;
 
+    let mut id = jwt_payload.sub;
+
+    if !id.starts_with("did:kilt") {
+        id = format!("did:kilt:{}", id);
+    }
+
     let user = User {
-        id: jwt_payload.sub,
+        id,
         is_admin: !jwt_payload.pro.is_empty(),
     };
 

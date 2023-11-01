@@ -68,7 +68,6 @@ export const Dashboard = () => {
 
     return (
         <div>
-            <LineChart data={kpi.attestations_created_over_time} />
         </div>
     )
 

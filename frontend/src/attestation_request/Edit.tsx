@@ -36,7 +36,7 @@ export const AttestationEdit = () => {
       ? KiltCredentials.fromClaim(updatedClaim)
       : previous_data.credential;
 
-    return { claim: updatedCredential };
+    return updatedCredential;
   };
 
   // elements

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE attestation_requests SET approved = true, tx_state = 'Succeeded', approved_at = NOW() WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a4aa57a994d25186fa6d86951c91bce8bf7c931f99787c00fcb59f7c661b215d"
+}

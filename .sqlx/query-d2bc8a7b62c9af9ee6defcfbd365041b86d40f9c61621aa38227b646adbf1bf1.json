@@ -69,7 +69,8 @@
                 "InFlight",
                 "InBlock",
                 "Succeeded",
-                "Failed"
+                "Failed",
+                "Pending"
               ]
             }
           }
