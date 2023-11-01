@@ -10,23 +10,29 @@ use crate::utils::{calculate_signature, get_current_block, get_next_tx_counter};
 use self::kilt::runtime_types;
 use self::kilt::runtime_types::did::did_details::DidAuthorizedCallOperation;
 
+#[cfg(spiritnet)]
 #[subxt::subxt(runtime_metadata_path = "./metadata_spiritnet_11110.scale")]
 pub mod kilt {}
 
+#[cfg(spiritnet)]
 pub type ProxyType = kilt::runtime_types::spiritnet_runtime::ProxyType;
-
+#[cfg(spiritnet)]
 pub type RuntimeCall = kilt::runtime_types::spiritnet_runtime::RuntimeCall;
-
+#[cfg(spiritnet)]
 pub type RuntimeEvent = kilt::runtime_types::spiritnet_runtime::RuntimeEvent;
 
-// #[subxt::subxt(runtime_metadata_path = "metadata_peregrine_11110..scale")]
-// pub mod kilt {}
+#[cfg(not(spiritnet))]
+#[subxt::subxt(runtime_metadata_path = "metadata_peregrine_11110..scale")]
+pub mod kilt {}
 
-// pub type ProxyType = kilt::runtime_types::peregrine_runtime::ProxyType;
+#[cfg(not(spiritnet))]
+pub type ProxyType = kilt::runtime_types::peregrine_runtime::ProxyType;
 
-// pub type RuntimeCall = kilt::runtime_types::peregrine_runtime::RuntimeCall;
+#[cfg(not(spiritnet))]
+pub type RuntimeCall = kilt::runtime_types::peregrine_runtime::RuntimeCall;
 
-// pub type RuntimeEvent = kilt::runtime_types::peregrine_runtime::RuntimeEvent;
+#[cfg(not(spiritnet))]
+pub type RuntimeEvent = kilt::runtime_types::peregrine_runtime::RuntimeEvent;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct KiltConfig;

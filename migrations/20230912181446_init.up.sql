@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
  
-CREATE TYPE tx_states AS ENUM ('InFlight', 'InBlock', 'Succeeded', 'Failed', 'Pending' ); 
+CREATE TYPE tx_states AS ENUM ('Succeeded', 'Failed', 'Pending' ); 
 
 CREATE TABLE IF NOT EXISTS attestation_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4()  NOT NULL,

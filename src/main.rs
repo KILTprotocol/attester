@@ -111,8 +111,8 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .app_data(web::Data::new(app_state.clone()))
-            .wrap(cors)
             .wrap(logger)
+            .wrap(cors)
             .service(get_attestation_request_scope().wrap(auth))
             .service(actix_files::Files::new("/", &front_end_path).index_file("index.html"))
     })

@@ -133,6 +133,19 @@ pub async fn can_approve_attestation_tx(
     .map_err(AppError::from)
 }
 
+pub async fn _failed_approve_attestation_request_tx(
+    attestation_request_id: &Uuid,
+    tx: &mut sqlx::Transaction<'_, Postgres>,
+) -> Result<PgQueryResult, AppError> {
+    sqlx::query!(
+        "UPDATE attestation_requests SET tx_state = 'Failed' WHERE id = $1",
+        attestation_request_id
+    )
+    .execute(&mut **tx)
+    .await
+    .map_err(AppError::from)
+}
+
 pub async fn approve_attestation_request_tx(
     attestation_request_id: &Uuid,
     tx: &mut sqlx::Transaction<'_, Postgres>,

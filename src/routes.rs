@@ -99,16 +99,40 @@ async fn approve_attestation(
         return Ok(HttpResponse::BadRequest().json("Claim hash or ctype hash have a wrong format"));
     }
 
-    crate::tx::create_claim(
-        H256::from_slice(&claim_hash),
-        H256::from_slice(&ctype_hash),
-        state.config.clone(),
-    )
-    .await?;
+    tokio::spawn(async move {
+        if let Err(err) = crate::tx::create_claim(
+            H256::from_slice(&claim_hash),
+            H256::from_slice(&ctype_hash),
+            state.config.clone(),
+        )
+        .await
+        {
+            log::error!("Error: Something went wrong with create_claim: {:?}", err);
+            //failed_approve_attestation_request_tx(&attestation_id, &mut tx).await;
+            return;
+        }
 
-    approve_attestation_request_tx(&attestation_id, &mut tx).await?;
-    tx.commit().await?;
-    log::info!("Attestation with id {:?} is approved", attestation_id);
+        if let Err(err) = approve_attestation_request_tx(&attestation_id, &mut tx).await {
+            log::error!(
+                "Error: Something went wrong with approve_attestation_request_tx: {:?}",
+                err
+            );
+            return;
+        }
+
+        if let Err(err) = tx.commit().await {
+            log::error!("Error: Something went wrong with tx.commit: {:?}", err);
+            return;
+        }
+
+        log::info!("Attestation with id {:?} is approved", attestation_id);
+    });
+
+    log::info!(
+        "Attestation with id {:?} is getting approved",
+        attestation_id
+    );
+
     Ok(HttpResponse::Ok().json("ok"))
 }
 
@@ -129,9 +153,29 @@ async fn revoke_attestation(
         return Ok(HttpResponse::BadRequest().json("Claim hash has a wrong format"));
     }
 
-    crate::tx::revoke_claim(H256::from_slice(&claim_hash), state.config.clone()).await?;
-    revoke_attestation_request(&attestation_id, &mut tx).await?;
-    tx.commit().await?;
+    tokio::spawn(async move {
+        {
+            if let Err(err) =
+                crate::tx::revoke_claim(H256::from_slice(&claim_hash), state.config.clone()).await
+            {
+                log::info!("Error: Something went wrong with revoke_claim: {:?}", err);
+                return;
+            }
+
+            if let Err(err) = revoke_attestation_request(&attestation_id, &mut tx).await {
+                log::info!(
+                    "Error: Something went wrong with revoke_attestation_request: {:?}",
+                    err
+                );
+                return;
+            }
+
+            if let Err(err) = tx.commit().await {
+                log::info!("Error: Something went wrong with tx.commit: {:?}", err);
+                return;
+            }
+        }
+    });
 
     log::info!("Attestation with id {:?} is revoked", attestation_id);
 

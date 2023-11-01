@@ -24,8 +24,6 @@ pub struct Credential {
 #[derive(Serialize, Deserialize, sqlx::Type, Clone)]
 #[sqlx(type_name = "tx_states")]
 pub enum TxState {
-    InFlight,
-    InBlock,
     Succeeded,
     Failed,
     Pending,
