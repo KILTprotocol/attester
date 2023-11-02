@@ -83,3 +83,13 @@ pub async fn is_user_allowed_to_update_data(
         ))
     }
 }
+
+pub fn is_user_admin(user: ReqData<User>) -> Result<(), actix_web::Error> {
+    if !user.is_admin {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allow to see data",
+        ))
+    } else {
+        Ok(())
+    }
+}

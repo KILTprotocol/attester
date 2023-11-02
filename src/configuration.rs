@@ -22,7 +22,7 @@ pub struct Configuration {
     attester_attestation_seed: String,
     // Websocket address of network
     #[clap(env)]
-    wss_address: String,
+    pub wss_address: String,
     #[clap(env)]
     pub host_name: String,
     #[clap(env)]

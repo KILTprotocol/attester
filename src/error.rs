@@ -19,6 +19,10 @@ pub enum AppError {
     Hex(#[from] hex::FromHexError),
 }
 
+// Is thread safe. No data races or similar can happen.
+unsafe impl Send for AppError {}
+unsafe impl Sync for AppError {}
+
 impl actix_web::error::ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {
         HttpResponse::build(self.status_code()).body(self.to_string())

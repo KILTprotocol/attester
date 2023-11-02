@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{types::chrono::NaiveDateTime, FromRow};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, FromRow, Clone, PartialEq, Debug)]
 pub struct Claim {
     #[serde(rename = "cTypeHash")]
     pub ctype_hash: String,
@@ -10,7 +10,7 @@ pub struct Claim {
     pub owner: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, FromRow, Clone, PartialEq, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Credential {
     pub claim: Claim,
@@ -27,6 +27,7 @@ pub enum TxState {
     Succeeded,
     Failed,
     Pending,
+    InFlight,
 }
 
 #[derive(Serialize, Deserialize, FromRow, Clone)]
@@ -45,7 +46,7 @@ pub struct AttestationResponse {
     pub tx_state: Option<TxState>,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct Pagination {
     pub offset: Option<[u32; 2]>,
     pub sort: Option<[String; 2]>,

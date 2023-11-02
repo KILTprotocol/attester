@@ -75,11 +75,7 @@ export const AttestationCreate = () => {
         claimer as DidUri
       );
 
-      return {
-        claimer,
-        ctype_hash: ctypeHash,
-        claim: KiltCredential.fromClaim(claim)
-      };
+      return KiltCredential.fromClaim(claim)
     } catch {
       notify("Ctype Verification failed");
     }

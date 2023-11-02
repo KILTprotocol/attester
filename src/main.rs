@@ -99,12 +99,24 @@ async fn main() -> std::io::Result<()> {
     let front_end_path = config.front_end_path.clone();
     let db_executor = database::connection::init(&config.database_url).await;
 
+    log::info!("started server at {}:{}", host_name, port);
+
+    #[cfg(feature = "spiritnet")]
+    log::info!(
+        "Spiritnet features is set. WSS adress is set to: {}",
+        &config.wss_address
+    );
+
+    #[cfg(not(feature = "spiritnet"))]
+    log::info!(
+        "Peregrine feature is set. WSS adress is set to: {}",
+        &config.wss_address
+    );
+
     let app_state = AppState {
         config,
         db_executor,
     };
-
-    log::info!("started server at {}:{}", host_name, port);
 
     HttpServer::new(move || {
         let cors = Cors::permissive();
@@ -112,9 +124,9 @@ async fn main() -> std::io::Result<()> {
         let auth = HttpAuthentication::bearer(jwt_validator);
 
         App::new()
-            .app_data(web::Data::new(app_state.clone()))
             .wrap(logger)
             .wrap(cors)
+            .app_data(web::Data::new(app_state.clone()))
             .service(get_attestation_request_scope().wrap(auth))
             .service(actix_files::Files::new("/", &front_end_path).index_file("index.html"))
     })

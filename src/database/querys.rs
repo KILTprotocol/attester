@@ -99,11 +99,11 @@ pub async fn delete_attestation_request(
 }
 
 pub async fn insert_attestation_request(
-    ctype_hash: &str,
-    claimer: &str,
     credential: &Credential,
     db_executor: &PgPool,
 ) -> Result<AttestationResponse, AppError> {
+    let ctype_hash = credential.claim.ctype_hash.clone();
+    let claimer = credential.claim.owner.clone();
     let result = sqlx::query_as!(
         AttestationResponse,
         r#"INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) 
@@ -133,7 +133,20 @@ pub async fn can_approve_attestation_tx(
     .map_err(AppError::from)
 }
 
-pub async fn _failed_approve_attestation_request_tx(
+pub async fn mark_attestation_request_in_flight(
+    attestation_request_id: &Uuid,
+    tx: &mut sqlx::Transaction<'_, Postgres>,
+) -> Result<PgQueryResult, AppError> {
+    sqlx::query!(
+        "UPDATE attestation_requests SET tx_state = 'InFlight' WHERE id = $1",
+        attestation_request_id
+    )
+    .execute(&mut **tx)
+    .await
+    .map_err(AppError::from)
+}
+
+pub async fn record_attestation_request_failed(
     attestation_request_id: &Uuid,
     tx: &mut sqlx::Transaction<'_, Postgres>,
 ) -> Result<PgQueryResult, AppError> {

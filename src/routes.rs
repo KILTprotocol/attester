@@ -13,11 +13,12 @@ use crate::{
             approve_attestation_request_tx, attestation_requests_kpis, can_approve_attestation_tx,
             can_revoke_attestation, delete_attestation_request, get_attestation_request_by_id,
             get_attestation_requests, get_attestations_count, insert_attestation_request,
+            mark_attestation_request_in_flight, record_attestation_request_failed,
             revoke_attestation_request, update_attestation_request,
         },
     },
     error::AppError,
-    utils::{is_user_allowed_to_see_data, is_user_allowed_to_update_data},
+    utils::{is_user_admin, is_user_allowed_to_see_data, is_user_allowed_to_update_data},
     AppState, User,
 };
 
@@ -46,7 +47,6 @@ async fn get_attestations(
     let content_range = get_attestations_count(&state.db_executor).await;
     let attestation_requests = get_attestation_requests(pagination, &state.db_executor).await?;
     let response = serde_json::to_value(&attestation_requests)?;
-
     is_user_allowed_to_see_data(user, &attestation_requests)?;
     Ok(HttpResponse::Ok()
         .insert_header(("Content-Range", content_range))
@@ -72,11 +72,7 @@ async fn post_attestation(
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
     let claim_request = body.into_inner();
-    let claimer = &claim_request.claim.owner;
-    let ctype = &format!("kilt:ctype:{}", claim_request.claim.ctype_hash);
-
-    let attestation =
-        insert_attestation_request(ctype, claimer, &claim_request, &state.db_executor).await?;
+    let attestation = insert_attestation_request(&claim_request, &state.db_executor).await?;
     log::info!(" New attestation with id {:?} is created", attestation.id);
     Ok(HttpResponse::Ok().json(attestation))
 }
@@ -87,9 +83,12 @@ async fn approve_attestation(
     user: ReqData<User>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
+    // get data
     let attestation_id = path.into_inner();
-    is_user_allowed_to_update_data(user, &attestation_id, &state.db_executor).await?;
+    // check role
+    is_user_admin(user)?;
 
+    // start session for db
     let mut tx = state.db_executor.begin().await?;
     let attestation = can_approve_attestation_tx(&attestation_id, &mut tx).await?;
     let credential: Credential = serde_json::from_value(attestation.credential)?;
@@ -99,16 +98,21 @@ async fn approve_attestation(
         return Ok(HttpResponse::BadRequest().json("Claim hash or ctype hash have a wrong format"));
     }
 
+    // send tx async
     tokio::spawn(async move {
-        if let Err(err) = crate::tx::create_claim(
+        let _ = mark_attestation_request_in_flight(&attestation_id, &mut tx).await;
+
+        let result_create_claim = crate::tx::create_claim(
             H256::from_slice(&claim_hash),
             H256::from_slice(&ctype_hash),
             state.config.clone(),
         )
-        .await
-        {
-            log::error!("Error: Something went wrong with create_claim: {:?}", err);
-            //failed_approve_attestation_request_tx(&attestation_id, &mut tx).await;
+        .await;
+
+        if let Err(err) = result_create_claim {
+            log::error!("Error: Something went wrong with create_claim: {:?}", err,);
+            let _ = record_attestation_request_failed(&attestation_id, &mut tx).await;
+            let _ = tx.commit().await;
             return;
         }
 
@@ -132,7 +136,6 @@ async fn approve_attestation(
         "Attestation with id {:?} is getting approved",
         attestation_id
     );
-
     Ok(HttpResponse::Ok().json("ok"))
 }
 
@@ -142,9 +145,12 @@ async fn revoke_attestation(
     user: ReqData<User>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
+    // get data
     let attestation_id = path.into_inner();
+    // is user allowed
     is_user_allowed_to_update_data(user, &attestation_id, &state.db_executor).await?;
 
+    // start db tx
     let mut tx = state.db_executor.begin().await?;
     let attestation = can_revoke_attestation(&attestation_id, &mut tx).await?;
     let credential: Credential = serde_json::from_value(attestation.credential)?;
@@ -153,6 +159,7 @@ async fn revoke_attestation(
         return Ok(HttpResponse::BadRequest().json("Claim hash has a wrong format"));
     }
 
+    // revoke attestation async in db.
     tokio::spawn(async move {
         {
             if let Err(err) =
@@ -174,11 +181,15 @@ async fn revoke_attestation(
                 log::info!("Error: Something went wrong with tx.commit: {:?}", err);
                 return;
             }
+
+            log::info!("Attestation with id {:?} is revoked", attestation_id);
         }
     });
 
-    log::info!("Attestation with id {:?} is revoked", attestation_id);
-
+    log::info!(
+        "Attestation with id {:?} is getting revoked",
+        attestation_id
+    );
     Ok(HttpResponse::Ok().json("ok"))
 }
 
@@ -189,16 +200,15 @@ async fn update_attestation(
     user: ReqData<User>,
     body: web::Json<Credential>,
 ) -> Result<HttpResponse, AppError> {
+    // get data
     let attestation_id = path.into_inner();
-    is_user_allowed_to_update_data(user, &attestation_id, &state.db_executor).await?;
-
     let credential = body.into_inner();
-
+    // check role
+    is_user_allowed_to_update_data(user, &attestation_id, &state.db_executor).await?;
+    // update
     let attestation =
         update_attestation_request(&attestation_id, &credential, &state.db_executor).await?;
-
     log::info!("Attestation with id {:?} is updated", attestation_id);
-
     Ok(HttpResponse::Ok().json(serde_json::to_value(&attestation)?))
 }
 
