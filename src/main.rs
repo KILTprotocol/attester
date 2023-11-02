@@ -104,6 +104,8 @@ async fn main() -> std::io::Result<()> {
         db_executor,
     };
 
+    log::info!("started server at {}:{}", host_name, port);
+
     HttpServer::new(move || {
         let cors = Cors::permissive();
         let logger = Logger::default();
