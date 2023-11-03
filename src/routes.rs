@@ -303,6 +303,12 @@ async fn get_attestation_kpis(state: web::Data<AppState>) -> Result<HttpResponse
     Ok(HttpResponse::Ok().json(serde_json::to_value(kpis)?))
 }
 
+// Create a scope for attestation request-related endpoints.
+/// This function sets up a scope for handling attestation request-related endpoints, such as approving, retrieving, creating,
+/// deleting, updating, revoking attestation requests, and fetching key performance indicators (KPIs).
+///
+/// # Returns
+/// A scope that contains various attestation request-related endpoints for handling attestation requests and related actions.
 pub(crate) fn get_attestation_request_scope() -> Scope {
     web::scope("/api/v1/attestation_request")
         .service(approve_attestation)
