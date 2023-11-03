@@ -22,6 +22,17 @@ use crate::{
     AppState, User,
 };
 
+/// Get attestation information by ID.
+/// This endpoint allows users to retrieve attestation information by its unique ID.
+///
+/// # Parameters
+/// - `attestation_request_id`: A unique UUID identifier for the attestation request.
+/// - `user`: Information about the requesting user.
+/// - `state`: Application state data.
+///
+/// # Returns
+/// - If the user is authorized to view the attestation, the endpoint responds with a JSON representation of the attestation.
+/// - If the user is not authorized, it returns an error response.
 #[get("/{attestation_request_id}")]
 async fn get_attestation(
     path: web::Path<Uuid>,
@@ -34,6 +45,17 @@ async fn get_attestation(
     Ok(HttpResponse::Ok().json(serde_json::to_value(&attestation)?))
 }
 
+/// Get a list of attestation requests.
+/// This endpoint allows users to retrieve a list of attestation requests based on pagination parameters.
+///
+/// # Parameters
+/// - `state`: Application state data.
+/// - `user`: Information about the requesting user.
+/// - `pagination_query`: Query parameters for pagination.
+///
+/// # Returns
+/// - If the user is authorized to view the attestation requests, the endpoint responds with a JSON list of attestation requests and includes a `Content-Range` header.
+/// - If the user is not authorized, it returns an error response.
 #[get("")]
 async fn get_attestations(
     state: web::Data<AppState>,
@@ -53,6 +75,17 @@ async fn get_attestations(
         .json(response))
 }
 
+/// Delete an attestation request by ID.
+/// This endpoint allows users to delete an attestation request by its unique ID.
+///
+/// # Parameters
+/// - `attestation_request_id`: A unique UUID identifier for the attestation request.
+/// - `user`: Information about the requesting user.
+/// - `state`: Application state data.
+///
+/// # Returns
+/// - If the user is authorized to delete the attestation, the endpoint responds with a success message.
+/// - If the user is not authorized, it returns an error response 401.
 #[delete("/{attestation_request_id}")]
 async fn delete_attestation(
     path: web::Path<Uuid>,
@@ -66,6 +99,15 @@ async fn delete_attestation(
     Ok(HttpResponse::Ok().json("ok"))
 }
 
+/// Create a new attestation request.
+/// This endpoint allows users to create a new attestation request.
+///
+/// # Parameters
+/// - `body`: JSON data representing the credential for the attestation request.
+/// - `state`: Application state data.
+///
+/// # Returns
+/// - If the attestation request is successfully created, the endpoint responds with a JSON representation of the attestation request.
 #[post("")]
 async fn post_attestation(
     body: web::Json<Credential>,
@@ -77,6 +119,17 @@ async fn post_attestation(
     Ok(HttpResponse::Ok().json(attestation))
 }
 
+/// Approve an attestation request.
+/// This endpoint allows administrators to approve an attestation request, which triggers the creation of a new claim.
+///
+/// # Parameters
+/// - `attestation_request_id`: A unique UUID identifier for the attestation request.
+/// - `user`: Information about the requesting user.
+/// - `state`: Application state data.
+///
+/// # Returns
+/// - If the user is an administrator and the approval process is successful, the endpoint responds with a success message.
+/// - If the user is not authorized or if there are errors in the approval process, it returns an error response.
 #[put("/{attestation_request_id}/approve")]
 async fn approve_attestation(
     path: web::Path<Uuid>,
@@ -139,6 +192,17 @@ async fn approve_attestation(
     Ok(HttpResponse::Ok().json("ok"))
 }
 
+/// Revoke an attestation request.
+/// This endpoint allows users to revoke a previously approved attestation request.
+///
+/// # Parameters
+/// - `attestation_request_id`: A unique UUID identifier for the attestation request.
+/// - `user`: Information about the requesting user.
+/// - `state`: Application state data.
+///
+/// # Returns
+/// - If the user is authorized and the revocation process is successful, the endpoint responds with a success message.
+/// - If the user is not authorized or if there are errors in the revocation process, it returns an error response.
 #[put("/{attestation_request_id}/revoke")]
 async fn revoke_attestation(
     path: web::Path<Uuid>,
@@ -193,6 +257,18 @@ async fn revoke_attestation(
     Ok(HttpResponse::Ok().json("ok"))
 }
 
+/// Update an attestation request.
+/// This endpoint allows users to update an existing attestation request.
+///
+/// # Parameters
+/// - `attestation_request_id`: A unique UUID identifier for the attestation request to be updated.
+/// - `state`: Application state data.
+/// - `user`: Information about the requesting user.
+/// - `body`: JSON data representing the updated credential for the attestation request.
+///
+/// # Returns
+/// - If the user is authorized to update the attestation and the update process is successful, the endpoint responds with a JSON representation of the updated attestation request.
+/// - If the user is not authorized or if there are errors in the update process, it returns an error response.
 #[put("/{attestation_request_id}")]
 async fn update_attestation(
     path: web::Path<Uuid>,
@@ -212,6 +288,15 @@ async fn update_attestation(
     Ok(HttpResponse::Ok().json(serde_json::to_value(&attestation)?))
 }
 
+/// Get attestation key performance indicators (KPIs).
+/// This endpoint allows users to retrieve key performance indicators related to attestation requests.
+///
+/// # Parameters
+/// - `state`: Application state data.
+///
+/// # Returns
+/// - If the request is successful, the endpoint responds with a JSON representation of attestation-related KPIs.
+/// - If there are errors in the retrieval process, it returns an error response.
 #[get("/metric/kpis")]
 async fn get_attestation_kpis(state: web::Data<AppState>) -> Result<HttpResponse, AppError> {
     let kpis = attestation_requests_kpis(&state.db_executor).await?;
