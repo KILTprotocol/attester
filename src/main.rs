@@ -17,12 +17,16 @@ use sqlx::{Pool, Postgres};
 
 use crate::routes::get_attestation_request_scope;
 
+/// The `AppState` struct represents the application state and holds configuration and database-related information.
 #[derive(Clone)]
 pub struct AppState {
     pub config: Configuration,
     pub db_executor: Pool<Postgres>,
 }
 
+/// The `JWTPayload` struct represents the payload of a JSON Web Token (JWT).
+/// It is deserialized from a JWT and contains various claims like subject (`sub`), expiration (`exp`), etc.
+/// This struct is used during JWT validation.
 #[allow(dead_code)]
 #[derive(serde::Deserialize)]
 struct JWTPayload {
@@ -36,12 +40,17 @@ struct JWTPayload {
     nonce: String,
 }
 
+/// The `User` struct represents a user in the application.
+/// It holds user-specific information such as the user DID and whether the user is an admin.
 #[derive(Clone)]
 pub struct User {
     pub id: String,
     pub is_admin: bool,
 }
 
+/// The `jwt_validator` function is used as a middleware for JWT (JSON Web Token) authentication.
+/// It validates JWTs provided in the request's `Authorization` header, extracts user information, and sets it in the request's extensions.
+/// This function is used to authenticate and authorize users.
 async fn jwt_validator(
     req: ServiceRequest,
     credentials: BearerAuth,
@@ -88,6 +97,9 @@ async fn jwt_validator(
     Ok(request)
 }
 
+/// The `main` function is the entry point for the application.
+/// It initializes the application, sets up routes, middleware, and runs the HTTP server.
+/// The application's configuration, database connection, and other settings are configured here.
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init();
