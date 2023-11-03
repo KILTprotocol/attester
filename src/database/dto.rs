@@ -21,7 +21,7 @@ pub struct Credential {
     pub root_hash: String,
 }
 
-#[derive(Serialize, Deserialize, sqlx::Type, Clone)]
+#[derive(Serialize, Deserialize, sqlx::Type, Clone, PartialEq, Debug)]
 #[sqlx(type_name = "tx_states")]
 pub enum TxState {
     Succeeded,

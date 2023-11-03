@@ -17,7 +17,7 @@ pub async fn get_attestation_request_by_id(
     sqlx::query_as!(
         AttestationResponse,
         r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState"
-        FROM attestation_requests WHERE id = $1"#,
+        FROM attestation_requests WHERE id = $1 AND deleted_at is NULL"#,
         attestation_request_id,
     )
     .fetch_one(db_executor)
@@ -26,7 +26,7 @@ pub async fn get_attestation_request_by_id(
 }
 
 pub async fn get_attestations_count(db_executor: &PgPool) -> i64 {
-    sqlx::query_scalar!("SELECT COUNT (*) FROM attestation_requests")
+    sqlx::query_scalar!("SELECT COUNT (*) FROM attestation_requests WHERE deleted_at IS NULL")
         .fetch_one(db_executor)
         .await
         .map_or(0, |count| count.unwrap())
@@ -43,11 +43,12 @@ pub async fn get_attestation_requests(
 }
 
 pub fn construct_query(pagination: &Pagination) -> (String, Vec<String>) {
-    let mut query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM attestation_requests");
+    let mut query: QueryBuilder<Postgres> =
+        QueryBuilder::new("SELECT * FROM attestation_requests WHERE deleted_at IS NULL");
     let mut bind_values: Vec<String> = Vec::new();
 
     if let Some(filter) = &pagination.filter {
-        query.push(" WHERE claimer =");
+        query.push("AND claimer =");
         query.push_bind(filter.clone());
         bind_values.push(filter.clone());
     }
@@ -55,7 +56,11 @@ pub fn construct_query(pagination: &Pagination) -> (String, Vec<String>) {
     if let Some(sort) = &pagination.sort {
         query.push(" ORDER BY ");
         query.push_bind(sort[0].clone());
-        query.push(if sort[1] == "ASC" { " ASC" } else { " DESC" });
+        query.push(if sort[1].to_ascii_uppercase() == "ASC" {
+            " ASC"
+        } else {
+            " DESC"
+        });
         bind_values.push(sort[0].clone());
     }
 
@@ -79,7 +84,13 @@ async fn get_attestations(
     let mut query = sqlx::query_as::<_, AttestationResponse>(&query_string);
 
     for value in bind_values {
-        query = query.bind(value);
+        // Offset values has to be i32. if we can parse the value we have a number and use it as offset or limit.
+        let try_to_parse: Result<i32, _> = value.parse();
+        if let Ok(parsed_value) = try_to_parse {
+            query = query.bind(parsed_value)
+        } else {
+            query = query.bind(value);
+        }
     }
 
     query.fetch_all(db_executor).await
@@ -102,8 +113,8 @@ pub async fn insert_attestation_request(
     credential: &Credential,
     db_executor: &PgPool,
 ) -> Result<AttestationResponse, AppError> {
-    let ctype_hash = credential.claim.ctype_hash.clone();
     let claimer = credential.claim.owner.clone();
+    let ctype_hash = credential.claim.ctype_hash.clone();
     let result = sqlx::query_as!(
         AttestationResponse,
         r#"INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) 
@@ -135,13 +146,13 @@ pub async fn can_approve_attestation_tx(
 
 pub async fn mark_attestation_request_in_flight(
     attestation_request_id: &Uuid,
-    tx: &mut sqlx::Transaction<'_, Postgres>,
+    db_executor: &PgPool,
 ) -> Result<PgQueryResult, AppError> {
     sqlx::query!(
         "UPDATE attestation_requests SET tx_state = 'InFlight' WHERE id = $1",
         attestation_request_id
     )
-    .execute(&mut **tx)
+    .execute(db_executor)
     .await
     .map_err(AppError::from)
 }
@@ -159,7 +170,7 @@ pub async fn record_attestation_request_failed(
     .map_err(AppError::from)
 }
 
-pub async fn approve_attestation_request_tx(
+pub async fn approve_attestation_request(
     attestation_request_id: &Uuid,
     tx: &mut sqlx::Transaction<'_, Postgres>,
 ) -> Result<PgQueryResult, AppError> {
