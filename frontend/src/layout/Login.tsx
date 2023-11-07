@@ -69,7 +69,7 @@ const Login = () => {
             justifyContent: "center",
             color: (theme) => theme.palette.grey[500],
           }}
-        ></Box>
+        />
         <CardActions sx={{ padding: "0 1em 1em 1em" }}>
           <div style={{ flexDirection: "column" }}>
             <Button
