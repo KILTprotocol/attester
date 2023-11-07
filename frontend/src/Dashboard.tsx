@@ -17,7 +17,7 @@ interface KPIInterface {
 }
 
 const Dashboard = () => {
-    const [kpi, setKpi] = useState<KPIInterface | null>(null);
+    const [kpi, setKpi] = useState<KPIInterface>();
 
     useEffect(() => {
         const fetchData = async () => {
