@@ -2,12 +2,12 @@ import { AuthProvider } from "react-admin";
 import jwtDecode from 'jwt-decode';
 
 interface JWTPayload {
-  aud: string,
-  exp: number,
-  iat: number,
-  iss: string,
-  nonce: string,
-  pro: { [key: string]: any },
+  aud: string
+  exp: number
+  iat: number
+  iss: string
+  nonce: string
+  pro: { [key: string]: any }
   sub: string
   w3n: string
 }
@@ -37,6 +37,9 @@ export const authProvider: AuthProvider = {
   },
 
   checkError: (error) => {
+    if (!error) {
+      return Promise.resolve()
+    }
     const status = error.status;
     if (status === 401 || status === 403) {
       localStorage.removeItem('token');

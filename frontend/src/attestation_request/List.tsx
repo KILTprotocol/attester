@@ -5,7 +5,8 @@ import {
   DateField,
   useRecordContext,
   EditButton,
-  useNotify
+  useNotify,
+  useTheme
 } from "react-admin";
 import ReactJson from "react-json-view";
 import Fab from "@mui/material/Fab";
@@ -18,10 +19,12 @@ import { AttestationRequsts } from "../types";
 import { useState } from "react";
 import { isUserAdmin } from "../utils";
 import { getAxiosClient } from "../dataProvider";
+import { ICType } from "@kiltprotocol/sdk-js";
 
 const ExpandAttestation = () => {
   const record = useRecordContext<AttestationRequsts>();
-  return <ReactJson src={record.credential.claim.contents} />;
+  const [theme, _] = useTheme();
+  return <ReactJson theme={theme === "dark" ? "colors" : "bright:inverted"} src={record.credential.claim.contents} />;
 };
 
 const ApproveButton = () => {
@@ -46,16 +49,18 @@ const ApproveButton = () => {
 
   return (
     <Tooltip title="Approve">
-      <Fab
-        color="primary"
-        aria-label="add"
-        size="small"
-        disabled={record.approved}
-        onClick={handleClick}
-        sx={{ marginLeft: "1em", marginRight: "1em" }}
-      >
-        {isLoading ? <CircularProgress color="error" /> : <DoneIcon />}
-      </Fab>
+      <span>
+        <Fab
+          color="primary"
+          aria-label="add"
+          size="small"
+          disabled={record.approved}
+          onClick={handleClick}
+          sx={{ marginLeft: "1em", marginRight: "1em" }}
+        >
+          {isLoading ? <CircularProgress color="error" /> : <DoneIcon />}
+        </Fab>
+      </span>
     </Tooltip>
   );
 };
@@ -82,26 +87,33 @@ const RevokeButton = () => {
 
   return (
     <Tooltip title="Revoke">
-      <Fab
-        color="error"
-        aria-label="revoke"
-        size="small"
+      <span>
+        <Fab
+          color="error"
+          aria-label="revoke"
+          size="small"
 
-        disabled={!record.approved || record.revoked}
-        onClick={handleClick}
-        sx={{ marginLeft: "1em", marginRight: "1em" }}
-      >
+          disabled={!record.approved || record.revoked}
+          onClick={handleClick}
+          sx={{ marginLeft: "1em", marginRight: "1em" }}
+        >
 
-        {isLoading ? <CircularProgress /> : <RemoveIcon />}
-      </Fab>
+          {isLoading ? <CircularProgress /> : <RemoveIcon />}
+        </Fab>
+      </span>
     </Tooltip>
   );
 };
 
 const URLField = ({ baseURL }: { source: string; baseURL: string }) => {
   const record = useRecordContext<AttestationRequsts>();
+  let ctype = record.ctype_hash;
 
-  return <a href={baseURL + record.ctype_hash}>{record.ctype_hash}</a>;
+  if (!ctype.startsWith("kilt:ctype:")) {
+    ctype = `kilt:ctype:${ctype}` as ICType["$id"];
+  }
+
+  return <a href={`${baseURL}${ctype}`}>{ctype}</a>;
 };
 
 export const AttestationList = () => {
@@ -111,6 +123,9 @@ export const AttestationList = () => {
         <TextField source="id" />
         <DateField source="created_at" />
         <DateField source="updated_at" />
+        <DateField source="approved_at" />
+        <DateField source="revoked_at" />
+        <TextField source="tx_state" />
         <URLField
           source="ctype_hash"
           baseURL="https://ctypehub.galaniprojects.de/ctype/"
