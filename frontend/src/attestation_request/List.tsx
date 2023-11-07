@@ -6,7 +6,8 @@ import {
   useRecordContext,
   EditButton,
   useNotify,
-  useTheme
+  useTheme,
+  useRefresh
 } from "react-admin";
 import ReactJson from "react-json-view";
 import Fab from "@mui/material/Fab";
@@ -32,6 +33,7 @@ const ApproveButton = () => {
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL;
   const [isLoading, setIsLoading] = useState(false);
   const notify = useNotify();
+  const refresh = useRefresh();
 
   const handleClick = async () => {
     if (isLoading) {
@@ -43,8 +45,11 @@ const ApproveButton = () => {
     await client.put(
       apiURL + "/attestation_request/" + record.id + "/approve",
     );
-    setIsLoading(false);
-    notify("Attestation is approved");
+    setTimeout(() => {
+      setIsLoading(false);
+      refresh()
+    }, 60_000)
+    notify("Transaction for approval is fired");
   };
 
   return (
@@ -54,7 +59,7 @@ const ApproveButton = () => {
           color="primary"
           aria-label="add"
           size="small"
-          disabled={record.approved}
+          disabled={record.approved || isLoading}
           onClick={handleClick}
           sx={{ marginLeft: "1em", marginRight: "1em" }}
         >
@@ -65,11 +70,17 @@ const ApproveButton = () => {
   );
 };
 
+const DisableEditButton = () => {
+  const record = useRecordContext<AttestationRequsts>();
+  return <EditButton disabled={record.approved} />
+}
+
 const RevokeButton = () => {
   const record = useRecordContext<AttestationRequsts>();
   const [isLoading, setIsLoading] = useState(false);
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL;
   const notify = useNotify();
+  const refresh = useRefresh();
 
   const handleClick = async () => {
     if (isLoading) {
@@ -81,8 +92,12 @@ const RevokeButton = () => {
     await client.put(
       apiURL + "/attestation_request/" + record.id + "/revoke",
     );
-    setIsLoading(false);
-    notify("Attestation is revoked");
+    setTimeout(() => {
+      setIsLoading(false);
+      refresh()
+      notify("Transaction is finished!")
+    }, 60_000)
+    notify("Transaction for revokation is fired.");
   };
 
   return (
@@ -92,8 +107,7 @@ const RevokeButton = () => {
           color="error"
           aria-label="revoke"
           size="small"
-
-          disabled={!record.approved || record.revoked}
+          disabled={!record.approved || record.revoked || isLoading}
           onClick={handleClick}
           sx={{ marginLeft: "1em", marginRight: "1em" }}
         >
@@ -132,7 +146,7 @@ export const AttestationList = () => {
         />
         {isUserAdmin() && <ApproveButton />}
         {isUserAdmin() && <RevokeButton />}
-        <EditButton />
+        <DisableEditButton />
       </Datagrid>
     </List>
   );
