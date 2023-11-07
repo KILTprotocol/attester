@@ -3,7 +3,7 @@ import {
   SaveButton,
   SimpleForm,
   Toolbar,
-  useNotify
+  useNotify,
 } from "react-admin";
 import TextField from "@mui/material/TextField";
 import {
@@ -11,7 +11,7 @@ import {
   IClaimContents,
   Claim,
   DidUri,
-  Credential as KiltCredential
+  Credential as KiltCredential,
 } from "@kiltprotocol/sdk-js";
 import { useState } from "react";
 import ReactJson, { InteractionProps } from "react-json-view";
@@ -75,7 +75,7 @@ export const AttestationCreate = () => {
         claimer as DidUri
       );
 
-      return KiltCredential.fromClaim(claim)
+      return KiltCredential.fromClaim(claim);
     } catch {
       notify("Ctype Verification failed");
     }

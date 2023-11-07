@@ -5,7 +5,7 @@ import {
   ListItemIcon,
   Typography,
   Collapse,
-  Tooltip
+  Tooltip,
 } from "@mui/material";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import { useTranslate, useSidebarState } from "react-admin";
@@ -53,8 +53,8 @@ const SubMenu = (props: Props) => {
           sx={{
             "& a": {
               transition: "padding-left 195ms cubic-bezier(0.4, 0, 0.6, 1) 0ms",
-              paddingLeft: sidebarIsOpen ? 4 : 2
-            }
+              paddingLeft: sidebarIsOpen ? 4 : 2,
+            },
           }}
         >
           {children}

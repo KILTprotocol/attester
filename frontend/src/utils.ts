@@ -10,5 +10,5 @@ export async function fetchCType(
 
 export function isUserAdmin() {
   const role = authProvider.getRole();
-  return role === "admin"
+  return role === "admin";
 }

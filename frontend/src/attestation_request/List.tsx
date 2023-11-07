@@ -7,7 +7,7 @@ import {
   EditButton,
   useNotify,
   useTheme,
-  useRefresh
+  useRefresh,
 } from "react-admin";
 import ReactJson from "react-json-view";
 import Fab from "@mui/material/Fab";
@@ -25,7 +25,12 @@ import { ICType } from "@kiltprotocol/sdk-js";
 const ExpandAttestation = () => {
   const record = useRecordContext<AttestationRequsts>();
   const [theme, _] = useTheme();
-  return <ReactJson theme={theme === "dark" ? "colors" : "bright:inverted"} src={record.credential.claim.contents} />;
+  return (
+    <ReactJson
+      theme={theme === "dark" ? "colors" : "bright:inverted"}
+      src={record.credential.claim.contents}
+    />
+  );
 };
 
 const ApproveButton = () => {
@@ -42,13 +47,11 @@ const ApproveButton = () => {
 
     setIsLoading(true);
     let client = await getAxiosClient();
-    await client.put(
-      apiURL + "/attestation_request/" + record.id + "/approve",
-    );
+    await client.put(apiURL + "/attestation_request/" + record.id + "/approve");
     setTimeout(() => {
       setIsLoading(false);
-      refresh()
-    }, 60_000)
+      refresh();
+    }, 60_000);
     notify("Transaction for approval is fired");
   };
 
@@ -72,8 +75,8 @@ const ApproveButton = () => {
 
 const DisableEditButton = () => {
   const record = useRecordContext<AttestationRequsts>();
-  return <EditButton disabled={record.approved} />
-}
+  return <EditButton disabled={record.approved} />;
+};
 
 const RevokeButton = () => {
   const record = useRecordContext<AttestationRequsts>();
@@ -89,14 +92,12 @@ const RevokeButton = () => {
     setIsLoading(true);
     let client = await getAxiosClient();
 
-    await client.put(
-      apiURL + "/attestation_request/" + record.id + "/revoke",
-    );
+    await client.put(apiURL + "/attestation_request/" + record.id + "/revoke");
     setTimeout(() => {
       setIsLoading(false);
-      refresh()
-      notify("Transaction is finished!")
-    }, 60_000)
+      refresh();
+      notify("Transaction is finished!");
+    }, 60_000);
     notify("Transaction for revokation is fired.");
   };
 
@@ -111,7 +112,6 @@ const RevokeButton = () => {
           onClick={handleClick}
           sx={{ marginLeft: "1em", marginRight: "1em" }}
         >
-
           {isLoading ? <CircularProgress /> : <RemoveIcon />}
         </Fab>
       </span>

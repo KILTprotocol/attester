@@ -8,7 +8,7 @@ import {
   TextInput,
   Toolbar,
   useNotify,
-  useRecordContext
+  useRecordContext,
 } from "react-admin";
 import ReactJson, { InteractionProps } from "react-json-view";
 import Typography from "@mui/material/Typography";
@@ -16,7 +16,7 @@ import {
   Claim,
   IClaim,
   IClaimContents,
-  Credential as KiltCredentials
+  Credential as KiltCredentials,
 } from "@kiltprotocol/sdk-js";
 import { useState } from "react";
 import { fetchCType } from "../utils";

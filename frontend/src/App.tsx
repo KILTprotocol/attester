@@ -8,7 +8,7 @@ import Dashboard from "./Dashboard";
 import {
   AttestationEdit,
   AttestationList,
-  AttestationCreate
+  AttestationCreate,
 } from "./attestation_request";
 
 export const App = () => (

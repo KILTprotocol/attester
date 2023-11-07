@@ -7,17 +7,19 @@ export const getAxiosClient = async () => {
   const token = await authProvider.getToken();
   let instance = axios.create({
     headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  })
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return instance;
-}
+};
 
-
-const httpClient = async (url: string, options: { [key: string]: any } = {}) => {
+const httpClient = async (
+  url: string,
+  options: { [key: string]: any } = {}
+) => {
   const token = await authProvider.getToken();
   if (!options.headers) {
-    options.headers = new Headers({ Accept: 'application/json' });
+    options.headers = new Headers({ Accept: "application/json" });
   }
   options.user = {
     authenticated: true,
@@ -26,7 +28,7 @@ const httpClient = async (url: string, options: { [key: string]: any } = {}) => 
   return fetchUtils.fetchJson(url, options);
 };
 
-
 export const dataProvider = simpleRestProvider(
-  import.meta.env.VITE_SIMPLE_REST_URL, httpClient
+  import.meta.env.VITE_SIMPLE_REST_URL,
+  httpClient
 );
