@@ -1,7 +1,7 @@
 import { DidUri, ICType, ICredential } from "@kiltprotocol/sdk-js";
 import { UUID } from "crypto";
 
-export interface AttestationRequsts {
+export interface AttestationRequst {
   approved: boolean;
   revoked: boolean;
   claimer: DidUri;
