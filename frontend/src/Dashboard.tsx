@@ -26,6 +26,7 @@ interface KPIInterface {
 
 const Dashboard = () => {
     const [kpi, setKpi] = useState<KPIInterface>();
+    const [errorMessage, setErrorMessage] = useState<string>("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -38,6 +39,7 @@ const Dashboard = () => {
                 setKpi(res.data);
             } catch (error) {
                 console.error("Error fetching data:", error);
+                setErrorMessage(`Error fetching data: ${error}`);
             }
         };
 
@@ -49,6 +51,10 @@ const Dashboard = () => {
             date: new Date(dataPoint.date).toLocaleDateString(),
             total_attestations_created: dataPoint.total_attestations_created,
         }));
+
+    if (errorMessage !== '') {
+        return <span style={{ margin: "auto" }}>{errorMessage}</span>;
+    }
 
     if (!kpi) {
         return <div />;
