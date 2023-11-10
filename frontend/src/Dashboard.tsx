@@ -11,6 +11,7 @@ import {
 import Card from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
 import { getAxiosClient } from "./dataProvider";
+import CircularProgress from "@mui/material/CircularProgress";
 
 interface AttestationChartData {
     date: string;
@@ -57,7 +58,7 @@ const Dashboard = () => {
     }
 
     if (!kpi) {
-        return <div />;
+        return <CircularProgress style={{ margin: "auto" }} size={100} />
     }
 
     return (
