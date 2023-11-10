@@ -16,14 +16,14 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import CircularProgress from "@mui/material/CircularProgress";
 import Tooltip from "@mui/material/Tooltip";
 
-import { AttestationRequsts } from "../types";
+import { AttestationRequst } from "../types";
 import { useState } from "react";
 import { isUserAdmin } from "../utils";
 import { getAxiosClient } from "../dataProvider";
 import { ICType } from "@kiltprotocol/sdk-js";
 
 const ExpandAttestation = () => {
-  const record = useRecordContext<AttestationRequsts>();
+  const record = useRecordContext<AttestationRequst>();
   const [theme, _] = useTheme();
   return (
     <ReactJson
@@ -34,7 +34,7 @@ const ExpandAttestation = () => {
 };
 
 const ApproveButton = () => {
-  const record = useRecordContext<AttestationRequsts>();
+  const record = useRecordContext<AttestationRequst>();
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL;
   const [isLoading, setIsLoading] = useState(false);
   const notify = useNotify();
@@ -74,12 +74,12 @@ const ApproveButton = () => {
 };
 
 const DisableEditButton = () => {
-  const record = useRecordContext<AttestationRequsts>();
+  const record = useRecordContext<AttestationRequst>();
   return <EditButton disabled={record.approved} />;
 };
 
 const RevokeButton = () => {
-  const record = useRecordContext<AttestationRequsts>();
+  const record = useRecordContext<AttestationRequst>();
   const [isLoading, setIsLoading] = useState(false);
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL;
   const notify = useNotify();
@@ -120,7 +120,7 @@ const RevokeButton = () => {
 };
 
 const URLField = ({ baseURL }: { source: string; baseURL: string }) => {
-  const record = useRecordContext<AttestationRequsts>();
+  const record = useRecordContext<AttestationRequst>();
   let ctype = record.ctype_hash;
 
   if (!ctype.startsWith("kilt:ctype:")) {
