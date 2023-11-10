@@ -6,8 +6,6 @@ import Box from "@mui/material/Box";
 import authProvider from "../authProvider";
 
 const Login = () => {
-
-
   const handleSubmit = useCallback((clientId: string) => {
     const nonce =
       Math.random().toString(36).substring(2, 15) +
