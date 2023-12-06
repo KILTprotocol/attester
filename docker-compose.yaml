@@ -24,7 +24,7 @@ services:
       DATABASE_URL: "postgres://dena:secrect@db:5432/attester" # Updated database URL
       RUST_LOG: "info,debug,error,warn"
       JWT_SECRET: "super-secret-jwt-secret"
-      FRONT_END_PATH: "/usr/share/nginx/html"
+      FRONT_END_PATH: "/usr/share/html"
       PORT: 7777
 
     depends_on:

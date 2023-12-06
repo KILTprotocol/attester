@@ -18,15 +18,14 @@ COPY . /app/
 
 RUN cargo build --release --features spiritnet
 
-
 FROM rust:slim-buster
 
-COPY --from=frontend-build /usr/src/app/dist /usr/share/nginx/html
+COPY --from=frontend-build /usr/src/app/dist /usr/share/html
 COPY --from=backend-build /app/target/release/attester-backend /app/attester-backend
 
 EXPOSE 7777
 
-CMD [ "cargo sqlx prepare && ./app/attester-backend" ]
+CMD [ "sqlx migrate run && ./app/attester-backend" ]
 
 
 
