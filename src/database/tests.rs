@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::database::dto::{Credential, Pagination, TxState};
+use crate::database::dto::{Credential, Pagination, Query, TxState};
 use crate::database::querys::{
     approve_attestation_request, attestation_requests_kpis, can_approve_attestation_tx,
     can_revoke_attestation, construct_query, delete_attestation_request,
@@ -586,4 +586,31 @@ async fn test_approve_attestation_request_valid(db_executor: PgPool) {
     // Check the state of the attestation request.
     assert!(updated_attestation.approved);
     assert!(updated_attestation.approved_at.is_some());
+}
+
+#[test]
+fn test_cast_query_to_pagination() {
+    let query = Query {
+        filter: Some("{}".to_string()),
+        offset: Some("[0, 4]".to_string()),
+        sort: Some("[\"id\", \"ASC\"]".to_string()),
+    };
+
+    let pagination: Pagination = query.into();
+
+    assert!(pagination.filter.is_none());
+    assert_eq!(pagination.offset, Some([0, 4]));
+    assert_eq!(pagination.sort, Some(["id".to_string(), "ASC".to_string()]));
+
+    let query2 = Query {
+        filter: Some("{}".to_string()),
+        offset: Some("[0, a]".to_string()),
+        sort: Some("[\"id\", \"ASC\" , \"hello\"]".to_string()),
+    };
+
+    let pagination2: Pagination = query2.into();
+
+    assert!(pagination2.filter.is_none());
+    assert!(pagination2.offset.is_none());
+    assert!(pagination2.sort.is_none());
 }

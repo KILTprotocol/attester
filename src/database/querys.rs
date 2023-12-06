@@ -68,7 +68,6 @@ pub fn construct_query(pagination: &Pagination) -> (String, Vec<String>) {
         query.push(" OFFSET ");
         query.push(offset[0]);
         query.push(" LIMIT ");
-
         query.push(offset[1]);
     }
 

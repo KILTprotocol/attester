@@ -65,7 +65,7 @@ impl From<Query> for Pagination {
         Pagination {
             offset: value
                 .offset
-                .and_then(|offset| serde_json::from_str(&offset).ok()),
+                .and_then(|offset| serde_json::from_str::<[u32; 2]>(&offset).ok()),
 
             sort: value.sort.and_then(|sort| serde_json::from_str(&sort).ok()),
             filter: value
