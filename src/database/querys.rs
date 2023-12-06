@@ -68,8 +68,8 @@ pub fn construct_query(pagination: &Pagination) -> (String, Vec<String>) {
         query.push(" OFFSET ");
         query.push(offset[0]);
         query.push(" LIMIT ");
-        // Limit is exclusiv thats why + 1
-        query.push(offset[1] + 1);
+
+        query.push(offset[1]);
     }
 
     (query.into_sql(), bind_values)

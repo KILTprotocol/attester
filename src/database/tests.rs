@@ -264,9 +264,9 @@ fn test_build_pagination_query_with_offset() {
 
     // Assert: Check that the generated query matches the expected query.
     let expected_query =
-        "SELECT * FROM attestation_requests WHERE deleted_at IS NULL OFFSET $1 LIMIT $2";
+        "SELECT * FROM attestation_requests WHERE deleted_at IS NULL OFFSET 10 LIMIT 20";
     assert_eq!(query.0, expected_query);
-    assert_eq!(query.1, vec!["10", "20"]);
+    assert!(query.1.is_empty());
 }
 #[test]
 fn test_build_pagination_query_with_sort_and_offset() {
@@ -282,9 +282,9 @@ fn test_build_pagination_query_with_sort_and_offset() {
 
     // Assert: Check that the generated query matches the expected query.
     let expected_query =
-        "SELECT * FROM attestation_requests WHERE deleted_at IS NULL ORDER BY $1 ASC OFFSET $2 LIMIT $3";
+        "SELECT * FROM attestation_requests WHERE deleted_at IS NULL ORDER BY $1 ASC OFFSET 5 LIMIT 15";
     assert_eq!(query.0, expected_query);
-    assert_eq!(query.1, vec!["id", "5", "15"]);
+    assert_eq!(query.1, vec!["id"]);
 }
 
 #[test]
