@@ -94,8 +94,6 @@ async fn main() -> std::io::Result<()> {
 
     let did = config.get_did().expect("Did should be set");
 
-    let key_pair_attestation = config.get_credential_signer().expect("Keys should be set");
-
     log::info!("Did: {}", did);
 
     let host_name = config.host_name.clone();
