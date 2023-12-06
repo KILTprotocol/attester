@@ -88,3 +88,12 @@ pub struct AttestationKPIs {
     pub attestations_revoked: i64,
     pub total_claimers: i64,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ChallengeData {
+    #[serde(rename = "dAppName")]
+    pub app_name: String,
+    #[serde(rename = "dAppEncryptionKeyUri")]
+    pub encryption_key_uri: String,
+    pub challenge: Vec<u8>,
+}

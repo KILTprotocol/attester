@@ -33,11 +33,22 @@ pub struct Configuration {
     pub jwt_secret: String,
     #[clap(env)]
     pub front_end_path: String,
+    #[clap(env)]
+    pub app_name: String,
+    #[clap(env)]
+    attester_key_agreement_seed: String,
 }
 
 impl Configuration {
     pub fn get_credential_signer(&self) -> Result<PairSigner<KiltConfig, Pair>, SecretStringError> {
         let pair = Pair::from_string_with_seed(&self.attester_attestation_seed, None)?.0;
+        Ok(PairSigner::new(pair))
+    }
+
+    pub fn get_key_agreement_signer(
+        &self,
+    ) -> Result<PairSigner<KiltConfig, Pair>, SecretStringError> {
+        let pair = Pair::from_string_with_seed(&self.attester_key_agreement_seed, None)?.0;
         Ok(PairSigner::new(pair))
     }
 

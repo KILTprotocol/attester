@@ -25,7 +25,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create the trigger only if it doesn't already exist
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE event_object_table = 'attestation_requests' AND trigger_name = 'update') THEN
@@ -35,3 +34,7 @@ BEGIN
         EXECUTE FUNCTION update_updated_at();
     END IF;
 END $$;
+
+CREATE TABLE IF NOT EXISTS session_request (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL
+);

@@ -253,3 +253,11 @@ pub async fn attestation_requests_kpis(pool: &PgPool) -> Result<AttestationKPIs,
         total_claimers,
     })
 }
+
+pub async fn generate_new_session(pool: &PgPool) -> Result<Uuid, AppError> {
+    let result = sqlx::query!("INSERT INTO session_request DEFAULT VALUES RETURNING id")
+        .fetch_one(pool)
+        .await
+        .map_err(AppError::from)?;
+    Ok(result.id)
+}
