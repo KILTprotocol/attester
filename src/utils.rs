@@ -22,6 +22,8 @@ pub async fn get_current_block(config: &Configuration) -> Result<u64, subxt::Err
         .block
         .header
         .number;
+
+    log::info!("Current block for TX: {}", block_number);
     Ok(block_number)
 }
 

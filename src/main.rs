@@ -46,11 +46,11 @@ async fn jwt_validator(
     req: ServiceRequest,
     credentials: BearerAuth,
 ) -> Result<ServiceRequest, (actix_web::Error, ServiceRequest)> {
-    let (http_req, payload) = req.into_parts();
+    let http_req = req.request();
 
     let app_data = http_req.app_data::<web::Data<AppState>>().ok_or((
         actix_web::error::ErrorInternalServerError("App data are not set"),
-        ServiceRequest::from_parts(http_req.clone(), actix_web::dev::Payload::None),
+        ServiceRequest::from_request(http_req.to_owned()),
     ))?;
 
     let token = credentials.token();
@@ -60,14 +60,14 @@ async fn jwt_validator(
     let secret: Hmac<Sha256> = Hmac::new_from_slice(jwt_secret.as_bytes()).map_err(|_| {
         (
             actix_web::error::ErrorInternalServerError("Secret is in wrong format"),
-            ServiceRequest::from_parts(http_req.clone(), actix_web::dev::Payload::None),
+            ServiceRequest::from_request(http_req.to_owned()),
         )
     })?;
 
     let jwt_payload: JWTPayload = token.verify_with_key(&secret).map_err(|_| {
         (
             actix_web::error::ErrorUnauthorized("JWT Verification did not succeed"),
-            ServiceRequest::from_parts(http_req.clone(), actix_web::dev::Payload::None),
+            ServiceRequest::from_request(http_req.to_owned()),
         )
     })?;
 
@@ -82,17 +82,21 @@ async fn jwt_validator(
         is_admin: !jwt_payload.pro.is_empty(),
     };
 
-    let request = ServiceRequest::from_parts(http_req, payload);
-    request.extensions_mut().insert(user);
-
-    Ok(request)
+    req.extensions_mut().insert(user);
+    Ok(req)
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    env_logger::init();
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     let config = Configuration::parse();
+
+    let did = config.get_did().expect("Did should be set");
+
+    let key_pair_attestation = config.get_credential_signer().expect("Keys should be set");
+
+    log::info!("Did: {}", did);
 
     let host_name = config.host_name.clone();
     let port = config.port.clone();
