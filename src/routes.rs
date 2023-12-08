@@ -98,6 +98,11 @@ async fn approve_attestation(
         return Ok(HttpResponse::BadRequest().json("Claim hash or ctype hash have a wrong format"));
     }
 
+    let payer = state.config.get_payer_signer()?;
+    let did = state.config.get_did()?;
+    let api = state.config.get_client().await?;
+    let signer = state.config.get_credential_signer()?;
+
     // send tx async
     tokio::spawn(async move {
         let _ = mark_attestation_request_in_flight(&attestation_id, &mut tx).await;
@@ -105,7 +110,10 @@ async fn approve_attestation(
         let result_create_claim = crate::tx::create_claim(
             H256::from_slice(&claim_hash),
             H256::from_slice(&ctype_hash),
-            state.config.clone(),
+            &did,
+            &api,
+            &payer,
+            &signer,
         )
         .await;
 
@@ -159,11 +167,17 @@ async fn revoke_attestation(
         return Ok(HttpResponse::BadRequest().json("Claim hash has a wrong format"));
     }
 
+    let payer = state.config.get_payer_signer()?;
+    let did = state.config.get_did()?;
+    let api = state.config.get_client().await?;
+    let signer = state.config.get_credential_signer()?;
+
     // revoke attestation async in db.
     tokio::spawn(async move {
         {
             if let Err(err) =
-                crate::tx::revoke_claim(H256::from_slice(&claim_hash), state.config.clone()).await
+                crate::tx::revoke_claim(H256::from_slice(&claim_hash), &did, &api, &payer, &signer)
+                    .await
             {
                 log::info!("Error: Something went wrong with revoke_claim: {:?}", err);
                 return;

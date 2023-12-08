@@ -1,18 +1,24 @@
 use actix_web::web::ReqData;
 use sqlx::PgPool;
-use subxt::ext::sp_core::{crypto::SecretStringError, Pair};
+use subxt::{
+    ext::sp_core::{crypto::SecretStringError, sr25519, Pair},
+    tx::PairSigner,
+    utils::AccountId32,
+    OnlineClient,
+};
 use uuid::Uuid;
 
 use crate::{
-    configuration::Configuration,
     database::{dto::AttestationResponse, querys::get_attestation_request_by_id},
     error::AppError,
-    tx::kilt::{self, runtime_types::did::did_details::DidSignature},
+    tx::{
+        kilt::{self, runtime_types::did::did_details::DidSignature},
+        KiltConfig,
+    },
     User,
 };
 
-pub async fn get_current_block(config: &Configuration) -> Result<u64, subxt::Error> {
-    let api = config.get_client().await?;
+pub async fn get_current_block(api: &OnlineClient<KiltConfig>) -> Result<u64, subxt::Error> {
     let block_number = api
         .rpc()
         .block(None)
@@ -25,9 +31,11 @@ pub async fn get_current_block(config: &Configuration) -> Result<u64, subxt::Err
     Ok(block_number)
 }
 
-pub async fn get_next_tx_counter(config: &Configuration) -> Result<u64, AppError> {
-    let api = config.get_client().await?;
-    let did_doc_addr = kilt::storage().did().did(&config.get_did()?);
+pub async fn get_next_tx_counter(
+    api: &OnlineClient<KiltConfig>,
+    did_address: &AccountId32,
+) -> Result<u64, AppError> {
+    let did_doc_addr = kilt::storage().did().did(did_address);
     let tx_counter = api
         .storage()
         .at_latest()
@@ -41,9 +49,8 @@ pub async fn get_next_tx_counter(config: &Configuration) -> Result<u64, AppError
 
 pub fn calculate_signature(
     call: &[u8],
-    config: Configuration,
+    signer: &PairSigner<KiltConfig, sr25519::Pair>,
 ) -> Result<DidSignature, SecretStringError> {
-    let signer = config.get_credential_signer()?;
     let signed_data = signer.signer().sign(call);
     Ok(DidSignature::Sr25519(
         kilt::runtime_types::sp_core::sr25519::Signature(signed_data.into()),
