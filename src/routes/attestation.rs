@@ -11,7 +11,7 @@ use crate::{
     database::{
         dto::{Credential, Pagination, Query},
         querys::{
-            approve_attestation_request_tx, attestation_requests_kpis, can_approve_attestation_tx,
+            approve_attestation_request, attestation_requests_kpis, can_approve_attestation_tx,
             can_revoke_attestation, delete_attestation_request, get_attestation_request_by_id,
             get_attestation_requests, get_attestations_count, insert_attestation_request,
             mark_attestation_request_in_flight, record_attestation_request_failed,
@@ -106,7 +106,7 @@ async fn approve_attestation(
 
     // send tx async
     tokio::spawn(async move {
-        let _ = mark_attestation_request_in_flight(&attestation_id, &mut tx).await;
+        let _ = mark_attestation_request_in_flight(&attestation_id, &state.db_executor).await;
 
         let result_create_claim = crate::tx::create_claim(
             H256::from_slice(&claim_hash),
@@ -125,7 +125,7 @@ async fn approve_attestation(
             return;
         }
 
-        if let Err(err) = approve_attestation_request_tx(&attestation_id, &mut tx).await {
+        if let Err(err) = approve_attestation_request(&attestation_id, &mut tx).await {
             log::error!(
                 "Error: Something went wrong with approve_attestation_request_tx: {:?}",
                 err
@@ -176,11 +176,15 @@ async fn revoke_attestation(
     // revoke attestation async in db.
     tokio::spawn(async move {
         {
+            let _ = mark_attestation_request_in_flight(&attestation_id, &state.db_executor).await;
+
             if let Err(err) =
                 crate::tx::revoke_claim(H256::from_slice(&claim_hash), &did, &api, &payer, &signer)
                     .await
             {
                 log::info!("Error: Something went wrong with revoke_claim: {:?}", err);
+                let _ = record_attestation_request_failed(&attestation_id, &mut tx).await;
+                let _ = tx.commit().await;
                 return;
             }
 
