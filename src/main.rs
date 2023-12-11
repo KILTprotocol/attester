@@ -1,21 +1,22 @@
-pub mod cli;
-pub mod configuration;
-pub mod database;
-pub mod error;
-pub mod routes;
-pub mod tx;
-pub mod utils;
+mod cli;
+mod configuration;
+mod database;
+mod error;
+mod routes;
+mod tx;
+mod utils;
 
 use actix_cors::Cors;
 use actix_web::{dev::ServiceRequest, middleware::Logger, web, App, HttpMessage, HttpServer};
 use actix_web_httpauth::{extractors::bearer::BearerAuth, middleware::HttpAuthentication};
 use clap::Parser;
 use cli::Cli;
-use configuration::Configuration;
+use configuration::{Configuration, SessionConfig, WellKnownDidConfig};
 use hmac::{Hmac, Mac};
 use jwt::VerifyWithKey;
-use routes::get_attestation_request_scope;
+use routes::{get_attestation_request_scope, get_challenge_scope, well_known_did_config_handler};
 use sha2::Sha256;
+use sodiumoxide::crypto::box_::SecretKey;
 use sqlx::{Pool, Postgres};
 use subxt::{ext::sp_core::sr25519::Pair, tx::PairSigner, utils::AccountId32, OnlineClient};
 
@@ -31,6 +32,9 @@ pub struct AppState {
     pub api: OnlineClient<KiltConfig>,
     pub db_executor: Pool<Postgres>,
     pub attester_did: AccountId32,
+    pub well_known_did_config: WellKnownDidConfig,
+    pub session: SessionConfig,
+    pub encryption_key: SecretKey,
 }
 
 #[allow(dead_code)]
@@ -124,7 +128,7 @@ async fn main() -> std::io::Result<()> {
     #[cfg(not(feature = "spiritnet"))]
     log::info!(
         "Peregrine features are enabled. WSS adress is set to: {}",
-        &config.wss_address
+        &config.kilt_endpoint
     );
 
     let signer = config
@@ -140,7 +144,11 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("Creating blockchain client should not fail.");
 
+    let encryption_key = config.get_nacl_secret_key();
+
     let app_state = AppState {
+        session: config.session,
+        well_known_did_config: config.well_known_did_config,
         jwt_secret: config.jwt_secret,
         app_name: config.app_name,
         db_executor,
@@ -148,6 +156,7 @@ async fn main() -> std::io::Result<()> {
         signer,
         api,
         attester_did,
+        encryption_key,
     };
 
     HttpServer::new(move || {
@@ -160,6 +169,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .app_data(web::Data::new(app_state.clone()))
             .service(get_attestation_request_scope().wrap(auth))
+            .service(get_challenge_scope())
+            .service(well_known_did_config_handler)
             .service(actix_files::Files::new("/", &front_end_path).index_file("index.html"))
     })
     .bind(("0.0.0.0", port))?

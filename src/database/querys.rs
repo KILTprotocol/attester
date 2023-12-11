@@ -261,3 +261,11 @@ pub async fn generate_new_session(pool: &PgPool) -> Result<Uuid, AppError> {
         .map_err(AppError::from)?;
     Ok(result.id)
 }
+
+pub async fn remove_session(pool: &PgPool, id: Uuid) -> Result<bool, AppError> {
+    let result = sqlx::query!("DELETE FROM session_request WHERE id = $1;", id)
+        .execute(pool)
+        .await
+        .map_err(AppError::from)?;
+    Ok(result.rows_affected() == 1)
+}

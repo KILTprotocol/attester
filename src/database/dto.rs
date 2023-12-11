@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use sodiumoxide::crypto::box_;
 use sqlx::{types::chrono::NaiveDateTime, FromRow};
 use uuid::Uuid;
 
@@ -96,4 +97,12 @@ pub struct ChallengeData {
     #[serde(rename = "dAppEncryptionKeyUri")]
     pub encryption_key_uri: String,
     pub challenge: Vec<u8>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChallengeResponse {
+    pub encryption_key_uri: String,
+    pub encrypted_challenge: Vec<u8>,
+    pub nonce: box_::Nonce,
 }

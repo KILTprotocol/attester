@@ -17,6 +17,12 @@ pub enum AppError {
     Json(#[from] serde_json::Error),
     #[error("Hex error: {0}")]
     Hex(#[from] hex::FromHexError),
+    #[error("Challenge error: {0}")]
+    Challenge(String),
+    #[error("Session error: {0}")]
+    Session(String),
+    #[error("Light DID error: {0}")]
+    LightDid(String),
 }
 
 // Is thread safe. No data races or similar can happen.

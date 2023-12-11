@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use sodiumoxide::crypto::box_::SecretKey;
 use subxt::{
     ext::sp_core::{crypto::SecretStringError, sr25519::Pair, Pair as PairTrait},
     tx::PairSigner,
@@ -11,7 +12,6 @@ use crate::tx::KiltConfig;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Configuration {
-    pub host: String,
     pub port: u16,
     pub kilt_endpoint: String,
     pub session: SessionConfig,
@@ -63,5 +63,12 @@ impl Configuration {
     pub fn get_did(&self) -> Result<AccountId32, SecretStringError> {
         let pair = Pair::from_string_with_seed(&self.attester_did_seed, None)?.0;
         Ok(pair.public().into())
+    }
+
+    pub fn get_nacl_secret_key(&self) -> SecretKey {
+        let raw_key = hex::decode(self.session.nacl_secret_key.trim_start_matches("0x")).unwrap();
+        SecretKey::from_slice(&raw_key)
+            .ok_or(Err::<(), i32>(0))
+            .unwrap()
     }
 }

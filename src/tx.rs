@@ -1,3 +1,5 @@
+use base58::FromBase58;
+use sodiumoxide::crypto::box_;
 use subxt::{
     config::polkadot::PolkadotExtrinsicParams,
     config::Config,
@@ -161,4 +163,41 @@ pub async fn revoke_claim(
             )))
         }
     }
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+struct LightDidKeyDetails {
+    #[serde(rename = "publicKey")]
+    public_key: Vec<u8>,
+    #[serde(rename = "type")]
+    type_: String,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+struct LightDidDetails {
+    e: LightDidKeyDetails,
+}
+
+pub fn parse_encryption_key_from_lightdid(did: &str) -> Result<box_::PublicKey, AppError> {
+    // example did:kilt:light:00${authAddress}:${details}#encryption
+    log::debug!("key uri: {}", did);
+    let mut parts = did.split('#');
+    let first = parts
+        .next()
+        .ok_or(AppError::LightDid("malformed".to_string()))?;
+    let mut parts = first.split(':').skip(4);
+    let details = parts
+        .next()
+        .ok_or(AppError::LightDid("malformed".to_string()))?;
+    log::debug!("details: {}", details);
+    let mut chars = details.chars();
+    chars
+        .next()
+        .ok_or(AppError::LightDid("malformed".to_string()))?;
+    let bs: Vec<u8> = FromBase58::from_base58(chars.as_str())
+        .map_err(|_| AppError::LightDid("malformed base58".to_string()))?;
+    let details: LightDidDetails = serde_cbor::from_slice(&bs[1..])
+        .map_err(|_| AppError::LightDid("malformed cbor".to_string()))?;
+    box_::PublicKey::from_slice(&details.e.public_key)
+        .ok_or(AppError::LightDid("Not a valid public key".to_string()))
 }

@@ -3,19 +3,19 @@ use actix_web::{
     web::{self, ReqData},
     HttpResponse, Scope,
 };
+
 use subxt::ext::sp_core::H256;
 use uuid::Uuid;
 
 use crate::{
     database::{
-        dto::{ChallengeData, Credential, Pagination, Query},
+        dto::{Credential, Pagination, Query},
         querys::{
             approve_attestation_request_tx, attestation_requests_kpis, can_approve_attestation_tx,
-            can_revoke_attestation, delete_attestation_request, generate_new_session,
-            get_attestation_request_by_id, get_attestation_requests, get_attestations_count,
-            insert_attestation_request, mark_attestation_request_in_flight,
-            record_attestation_request_failed, revoke_attestation_request,
-            update_attestation_request,
+            can_revoke_attestation, delete_attestation_request, get_attestation_request_by_id,
+            get_attestation_requests, get_attestations_count, insert_attestation_request,
+            mark_attestation_request_in_flight, record_attestation_request_failed,
+            revoke_attestation_request, update_attestation_request,
         },
     },
     error::AppError,
@@ -233,21 +233,7 @@ async fn get_attestation_kpis(state: web::Data<AppState>) -> Result<HttpResponse
     Ok(HttpResponse::Ok().json(serde_json::to_value(kpis)?))
 }
 
-#[get("/api/v1/challenge")]
-async fn challenge_handler(state: web::Data<AppState>) -> Result<HttpResponse, AppError> {
-    let app_name = state.app_name.clone();
-    let challenge = generate_new_session(&state.db_executor).await?;
-
-    let encryption_key_uri = "key".to_string();
-    let challenge_data = ChallengeData {
-        challenge: challenge.as_bytes().to_vec(),
-        app_name,
-        encryption_key_uri,
-    };
-    Ok(HttpResponse::Ok().json(challenge_data))
-}
-
-pub(crate) fn get_attestation_request_scope() -> Scope {
+pub fn get_attestation_request_scope() -> Scope {
     web::scope("/api/v1/attestation_request")
         .service(approve_attestation)
         .service(get_attestation)

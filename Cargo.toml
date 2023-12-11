@@ -13,6 +13,7 @@ actix-files = "0.6.2"
 actix-jwt-auth-middleware = "0.3.0"
 actix-web = "4"
 actix-web-httpauth = "0.8.1"
+base58 = "0.2.0"
 chrono = {version = "0.4.24", features = ["serde"]}
 clap = {version = "4.4.6", features = ["env", "derive"]}
 env_logger = "0.10.0"
@@ -24,9 +25,11 @@ jwt = "0.16.0"
 jwt-compact = "0.8.0"
 log = "0.4.17"
 serde = {version = "1.0.147", features = ["derive"]}
+serde_cbor = "0.11.2"
 serde_json = {version = "1.0", features = ["raw_value"]}
 serde_yaml = "0.9.21"
 sha2 = "0.10.8"
+sodiumoxide = "0.2.7"
 sqlx = {version = "0.7", features = [
   "runtime-tokio",
   "postgres",
