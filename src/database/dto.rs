@@ -55,7 +55,7 @@ pub struct Pagination {
 
 #[derive(serde::Deserialize, Clone)]
 pub struct Query {
-    pub offset: Option<String>,
+    pub range: Option<String>,
     pub sort: Option<String>,
     pub filter: Option<String>,
 }
@@ -64,8 +64,8 @@ impl From<Query> for Pagination {
     fn from(value: Query) -> Self {
         Pagination {
             offset: value
-                .offset
-                .and_then(|offset| serde_json::from_str(&offset).ok()),
+                .range
+                .and_then(|offset| serde_json::from_str::<[u32; 2]>(&offset).ok()),
 
             sort: value.sort.and_then(|sort| serde_json::from_str(&sort).ok()),
             filter: value

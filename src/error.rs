@@ -25,6 +25,7 @@ unsafe impl Sync for AppError {}
 
 impl actix_web::error::ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {
+        log::error!("{}", self.to_string());
         HttpResponse::build(self.status_code()).body(self.to_string())
     }
 

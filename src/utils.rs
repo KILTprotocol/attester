@@ -28,6 +28,8 @@ pub async fn get_current_block(api: &OnlineClient<KiltConfig>) -> Result<u64, su
         .block
         .header
         .number;
+
+    log::info!("Current block for TX: {}", block_number);
     Ok(block_number)
 }
 
