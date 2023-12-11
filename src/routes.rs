@@ -99,10 +99,10 @@ async fn approve_attestation(
         return Ok(HttpResponse::BadRequest().json("Claim hash or ctype hash have a wrong format"));
     }
 
-    let payer = state.config.get_payer_signer()?;
-    let did = state.config.get_did()?;
-    let api = state.config.get_client().await?;
-    let signer = state.config.get_credential_signer()?;
+    let payer = state.payer.clone();
+    let did = state.attester_did.clone();
+    let api = state.api.clone();
+    let signer = state.signer.clone();
 
     // send tx async
     tokio::spawn(async move {
@@ -168,10 +168,10 @@ async fn revoke_attestation(
         return Ok(HttpResponse::BadRequest().json("Claim hash has a wrong format"));
     }
 
-    let payer = state.config.get_payer_signer()?;
-    let did = state.config.get_did()?;
-    let api = state.config.get_client().await?;
-    let signer = state.config.get_credential_signer()?;
+    let payer = state.payer.clone();
+    let did = state.attester_did.clone();
+    let api = state.api.clone();
+    let signer = state.signer.clone();
 
     // revoke attestation async in db.
     tokio::spawn(async move {
@@ -235,7 +235,7 @@ async fn get_attestation_kpis(state: web::Data<AppState>) -> Result<HttpResponse
 
 #[get("/api/v1/challenge")]
 async fn challenge_handler(state: web::Data<AppState>) -> Result<HttpResponse, AppError> {
-    let app_name = state.config.app_name.clone();
+    let app_name = state.app_name.clone();
     let challenge = generate_new_session(&state.db_executor).await?;
 
     let encryption_key_uri = "key".to_string();

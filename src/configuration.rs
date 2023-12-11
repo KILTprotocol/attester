@@ -1,5 +1,4 @@
-use clap::Parser;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use subxt::{
     ext::sp_core::{crypto::SecretStringError, sr25519::Pair, Pair as PairTrait},
     tx::PairSigner,
@@ -9,46 +8,46 @@ use subxt::{
 
 use crate::tx::KiltConfig;
 
-#[derive(Deserialize, Debug, Clone, Parser)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Configuration {
-    // Seed for attester
-    #[clap(env)]
-    attester_did_seed: String,
-    // Seed for payer
-    #[clap(env)]
-    payer_seed: String,
-    // Seed for attestation key
-    #[clap(env)]
-    attester_attestation_seed: String,
-    // Websocket address of network
-    #[clap(env)]
-    pub wss_address: String,
-    #[clap(env)]
-    pub host_name: String,
-    #[clap(env)]
-    pub database_url: String,
-    #[clap(env)]
+    pub host: String,
     pub port: u16,
-    #[clap(env)]
-    pub jwt_secret: String,
-    #[clap(env)]
+    pub kilt_endpoint: String,
+    pub session: SessionConfig,
+    #[serde(rename = "wellKnownDid")]
+    pub well_known_did_config: WellKnownDidConfig,
+    attester_did_seed: String,
+    attester_attestation_seed: String,
+    pub database_url: String,
     pub front_end_path: String,
-    #[clap(env)]
+    pub jwt_secret: String,
+    pub payer_seed: String,
     pub app_name: String,
-    #[clap(env)]
-    attester_key_agreement_seed: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionConfig {
+    pub session_key: String,
+    pub key_uri: String,
+    pub nacl_public_key: String,
+    pub nacl_secret_key: String,
+    pub session_ttl: i64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WellKnownDidConfig {
+    pub did: String,
+    pub key_uri: String,
+    pub origin: String,
+    pub seed: String,
 }
 
 impl Configuration {
     pub fn get_credential_signer(&self) -> Result<PairSigner<KiltConfig, Pair>, SecretStringError> {
         let pair = Pair::from_string_with_seed(&self.attester_attestation_seed, None)?.0;
-        Ok(PairSigner::new(pair))
-    }
-
-    pub fn get_key_agreement_signer(
-        &self,
-    ) -> Result<PairSigner<KiltConfig, Pair>, SecretStringError> {
-        let pair = Pair::from_string_with_seed(&self.attester_key_agreement_seed, None)?.0;
         Ok(PairSigner::new(pair))
     }
 
@@ -58,7 +57,7 @@ impl Configuration {
     }
 
     pub async fn get_client(&self) -> Result<OnlineClient<KiltConfig>, subxt::Error> {
-        Ok(OnlineClient::<KiltConfig>::from_url(&self.wss_address).await?)
+        Ok(OnlineClient::<KiltConfig>::from_url(&self.kilt_endpoint).await?)
     }
 
     pub fn get_did(&self) -> Result<AccountId32, SecretStringError> {
