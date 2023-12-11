@@ -1,11 +1,20 @@
-use subxt::ext::codec::Encode;
-use subxt::ext::sp_runtime::traits::{IdentifyAccount, Verify};
-use subxt::ext::{sp_core, sp_runtime};
-use subxt::{config::polkadot::PolkadotExtrinsicParams, config::Config};
+use subxt::{
+    config::polkadot::PolkadotExtrinsicParams,
+    config::Config,
+    ext::{
+        codec::Encode,
+        sp_core, sp_runtime,
+        sp_runtime::traits::{IdentifyAccount, Verify},
+    },
+    tx::PairSigner,
+    utils::AccountId32,
+    OnlineClient,
+};
 
-use crate::configuration::Configuration;
-use crate::error::AppError;
-use crate::utils::{calculate_signature, get_current_block, get_next_tx_counter};
+use crate::{
+    error::AppError,
+    utils::{calculate_signature, get_current_block, get_next_tx_counter},
+};
 
 use self::kilt::runtime_types;
 use self::kilt::runtime_types::did::did_details::DidAuthorizedCallOperation;
@@ -49,13 +58,13 @@ impl Config for KiltConfig {
 pub async fn create_claim(
     claim_hash: sp_core::H256,
     ctype_hash: sp_core::H256,
-    config: Configuration,
+    did_address: &AccountId32,
+    api: &OnlineClient<KiltConfig>,
+    payer: &PairSigner<KiltConfig, sp_core::sr25519::Pair>,
+    signer: &PairSigner<KiltConfig, sp_core::sr25519::Pair>,
 ) -> Result<Vec<u8>, AppError> {
-    let api = config.get_client().await?;
-    let payer = config.get_payer_signer()?;
-    let payer_account = payer.account_id();
-    let tx_counter = get_next_tx_counter(&config).await?;
-    let block_number = get_current_block(&config).await?;
+    let tx_counter = get_next_tx_counter(&api, &did_address).await?;
+    let block_number = get_current_block(&api).await?;
 
     let call = RuntimeCall::Attestation(runtime_types::attestation::pallet::Call::add {
         claim_hash,
@@ -64,20 +73,20 @@ pub async fn create_claim(
     });
 
     let did_call = DidAuthorizedCallOperation {
-        did: config.get_did()?,
+        did: did_address.to_owned(),
         tx_counter,
         block_number,
         call,
-        submitter: payer_account.clone().into(),
+        submitter: payer.account_id().to_owned().into(),
     };
 
     let encoded_call = did_call.encode();
 
-    let signature = calculate_signature(&did_call.encode(), config)?;
+    let signature = calculate_signature(&did_call.encode(), signer)?;
     let final_tx = kilt::tx().did().submit_did_call(did_call, signature);
     let events = api
         .tx()
-        .sign_and_submit_then_watch_default(&final_tx, &payer)
+        .sign_and_submit_then_watch_default(&final_tx, payer)
         .await?
         .wait_for_finalized_success()
         .await?;
@@ -103,16 +112,18 @@ pub async fn create_claim(
 
 pub async fn revoke_claim(
     claim_hash: sp_core::H256,
-    config: Configuration,
+    did_address: &AccountId32,
+    api: &OnlineClient<KiltConfig>,
+    payer: &PairSigner<KiltConfig, sp_core::sr25519::Pair>,
+    signer: &PairSigner<KiltConfig, sp_core::sr25519::Pair>,
 ) -> Result<Vec<u8>, AppError> {
-    let tx_counter = get_next_tx_counter(&config).await?;
-    let block_number = get_current_block(&config).await?;
-    let payer = config.get_payer_signer()?;
+    let tx_counter = get_next_tx_counter(&api, &did_address).await?;
+    let block_number = get_current_block(&api).await?;
+
     let payer_account = payer.account_id();
-    let api = config.get_client().await?;
 
     let did_call = DidAuthorizedCallOperation {
-        did: config.get_did()?,
+        did: did_address.to_owned(),
         tx_counter,
         block_number,
         call: RuntimeCall::Attestation(runtime_types::attestation::pallet::Call::revoke {
@@ -124,11 +135,11 @@ pub async fn revoke_claim(
 
     let encoded_call = did_call.encode();
 
-    let signature = calculate_signature(&did_call.encode(), config)?;
+    let signature = calculate_signature(&did_call.encode(), &signer)?;
     let final_tx = kilt::tx().did().submit_did_call(did_call, signature);
     let events = api
         .tx()
-        .sign_and_submit_then_watch_default(&final_tx, &payer)
+        .sign_and_submit_then_watch_default(&final_tx, payer)
         .await?
         .wait_for_finalized_success()
         .await?;
