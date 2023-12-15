@@ -5,13 +5,14 @@ mod error;
 mod routes;
 mod tx;
 mod utils;
+mod well_known_did_configuration;
 
 use actix_cors::Cors;
 use actix_web::{dev::ServiceRequest, middleware::Logger, web, App, HttpMessage, HttpServer};
 use actix_web_httpauth::{extractors::bearer::BearerAuth, middleware::HttpAuthentication};
 use clap::Parser;
 use cli::Cli;
-use configuration::{Configuration, SessionConfig, WellKnownDidConfig};
+use configuration::{Configuration, SessionConfig};
 use hmac::{Hmac, Mac};
 use jwt::VerifyWithKey;
 use routes::{get_attestation_request_scope, get_challenge_scope, well_known_did_config_handler};
@@ -19,6 +20,7 @@ use sha2::Sha256;
 use sodiumoxide::crypto::box_::SecretKey;
 use sqlx::{Pool, Postgres};
 use subxt::{ext::sp_core::sr25519::Pair, tx::PairSigner, utils::AccountId32, OnlineClient};
+use well_known_did_configuration::{create_well_known_did_config, WellKnownDidConfig};
 
 use crate::tx::KiltConfig;
 
@@ -117,8 +119,6 @@ async fn main() -> std::io::Result<()> {
 
     let db_executor = database::connection::init(&config.database_url).await;
 
-    log::info!("started server at port :{}", port);
-
     #[cfg(feature = "spiritnet")]
     log::info!(
         "Spiritnet features are enabled. WSS adress is set to: {}",
@@ -132,11 +132,11 @@ async fn main() -> std::io::Result<()> {
     );
 
     let signer = config
-        .get_payer_signer()
+        .get_credential_signer()
         .expect("Creating payer should not fail.");
 
     let payer = config
-        .get_credential_signer()
+        .get_payer_signer()
         .expect("Creating signer should not fail.");
 
     let api = config
@@ -146,11 +146,14 @@ async fn main() -> std::io::Result<()> {
 
     let encryption_key = config.get_nacl_secret_key();
 
+    let well_known_did_config = create_well_known_did_config(&config.well_known_did_config)
+        .expect("Creating well known did config should not fail.");
+
     let app_state = AppState {
         session: config.session,
-        well_known_did_config: config.well_known_did_config,
         jwt_secret: config.jwt_secret,
         app_name: config.app_name,
+        well_known_did_config,
         db_executor,
         payer,
         signer,
@@ -158,6 +161,8 @@ async fn main() -> std::io::Result<()> {
         attester_did,
         encryption_key,
     };
+
+    log::info!("started server at port: {}", port);
 
     HttpServer::new(move || {
         let cors = Cors::permissive();

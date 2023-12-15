@@ -19,8 +19,6 @@ pub enum AppError {
     Hex(#[from] hex::FromHexError),
     #[error("Challenge error: {0}")]
     Challenge(String),
-    #[error("Session error: {0}")]
-    Session(String),
     #[error("Light DID error: {0}")]
     LightDid(String),
 }

@@ -65,7 +65,7 @@ export const AttestationCreate = () => {
 
   const transformData = () => {
     if (!ctype || !claimContent) {
-      return false;
+      return undefined;
     }
 
     try {
@@ -74,9 +74,9 @@ export const AttestationCreate = () => {
         claimContent,
         claimer as DidUri
       );
-
       return KiltCredential.fromClaim(claim)
-    } catch {
+    } catch (e) {
+      console.error(e)
       notify("Ctype Verification failed");
     }
   };

@@ -13,11 +13,13 @@ import DoneIcon from "@mui/icons-material/Done";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CircularProgress from "@mui/material/CircularProgress";
 import Tooltip from "@mui/material/Tooltip";
+import DownloadIcon from '@mui/icons-material/Download';
 
 import { AttestationRequsts } from "../types";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { isUserAdmin } from "../utils";
 import { getAxiosClient } from "../dataProvider";
+import { apiWindow, getSession, useCompatibleExtensions } from "../session";
 
 const ExpandAttestation = () => {
   const record = useRecordContext<AttestationRequsts>();
@@ -98,6 +100,46 @@ const RevokeButton = () => {
   );
 };
 
+const DownloadCredential = () => {
+  const record = useRecordContext<AttestationRequsts>();
+  const [isLoading, setIsLoading] = useState(false);
+  const notify = useNotify();
+  const { kilt } = apiWindow;
+  const { extensions } = useCompatibleExtensions();
+  const hasExtension = extensions.length > 0;
+
+  const handleClick = async () => {
+    setIsLoading(true);
+    const extension = "sporran"
+
+    const session = await getSession(kilt[extension], record.id);
+
+
+    setIsLoading(false);
+  };
+
+  return (
+    <>
+      {hasExtension && (
+        <Tooltip title="Download">
+          <Fab
+            color="success"
+            aria-label="download"
+            size="small"
+
+            disabled={!record.approved}
+            onClick={handleClick}
+            sx={{ marginLeft: "1em", marginRight: "1em" }}
+          >
+
+            {isLoading ? <CircularProgress /> : <DownloadIcon />}
+          </Fab>
+        </Tooltip>
+      )}
+    </>
+  );
+};
+
 const URLField = ({ baseURL }: { source: string; baseURL: string }) => {
   const record = useRecordContext<AttestationRequsts>();
 
@@ -117,6 +159,7 @@ export const AttestationList = () => {
         />
         {isUserAdmin() && <ApproveButton />}
         {isUserAdmin() && <RevokeButton />}
+        <DownloadCredential />
         <EditButton />
       </Datagrid>
     </List>

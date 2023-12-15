@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
-use sodiumoxide::crypto::box_;
+use sodiumoxide::crypto::{box_, box_::Nonce};
 use sqlx::{types::chrono::NaiveDateTime, FromRow};
 use uuid::Uuid;
+
+use crate::utils::{hex_nonce, prefixed_hex};
 
 #[derive(Serialize, Deserialize, FromRow, Clone, PartialEq, Debug)]
 pub struct Claim {
@@ -103,6 +105,54 @@ pub struct ChallengeData {
 #[serde(rename_all = "camelCase")]
 pub struct ChallengeResponse {
     pub encryption_key_uri: String,
+    #[serde(with = "prefixed_hex")]
     pub encrypted_challenge: Vec<u8>,
+    #[serde(with = "hex_nonce")]
     pub nonce: box_::Nonce,
+    pub attestation_id: Uuid,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct MessageBody<T> {
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub content: T,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Message<T> {
+    pub body: MessageBody<T>,
+    #[serde(rename = "createdAt")]
+    pub created_at: u64,
+    pub sender: String,
+    pub receiver: String,
+    #[serde(rename = "messageId")]
+    pub message_id: String,
+    #[serde(rename = "inReplyTo")]
+    pub in_reply_to: Option<String>,
+    pub references: Option<Vec<String>>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EncryptedMessage {
+    #[serde(rename = "ciphertext")]
+    #[serde(with = "prefixed_hex")]
+    pub cipher_text: Vec<u8>,
+    #[serde(with = "hex_nonce")]
+    pub nonce: Nonce,
+    #[serde(rename = "receiverKeyUri")]
+    pub receiver_key_uri: String,
+    #[serde(rename = "senderKeyUri")]
+    pub sender_key_uri: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SubmitTermsMessageContent {
+    #[serde(rename = "cTypes")]
+    pub c_types: String,
+    pub claim: Claim,
+    pub quote: Option<String>,
+    #[serde(rename = "delegationId")]
+    pub delegation_id: Option<String>,
+    pub legitimations: Option<String>,
 }

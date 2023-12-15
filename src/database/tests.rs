@@ -592,7 +592,7 @@ async fn test_approve_attestation_request_valid(db_executor: PgPool) {
 fn test_cast_query_to_pagination() {
     let query = Query {
         filter: Some("{}".to_string()),
-        offset: Some("[0, 4]".to_string()),
+        range: Some("[0, 4]".to_string()),
         sort: Some("[\"id\", \"ASC\"]".to_string()),
     };
 
@@ -604,7 +604,7 @@ fn test_cast_query_to_pagination() {
 
     let query2 = Query {
         filter: Some("{}".to_string()),
-        offset: Some("[0, a]".to_string()),
+        range: Some("[0, a]".to_string()),
         sort: Some("[\"id\", \"ASC\" , \"hello\"]".to_string()),
     };
 
