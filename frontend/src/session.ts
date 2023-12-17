@@ -2,6 +2,7 @@ import { DidUri } from '@kiltprotocol/sdk-js';
 import { useState, useEffect } from 'react';
 import { getAxiosClient } from './dataProvider';
 
+
 interface EncryptedMessage {
   receiverKeyUri: string;
   senderKeyUri: string;
@@ -87,7 +88,20 @@ export async function getSession(provider: InjectedWindowProvider, attestationId
 
   console.log(post_session_response.data);
 
-  session.send(post_session_response.data);
+  const getCredentialRequestFromExtension = await new Promise(async (resolve, reject) => {
+    try {
+      await session.listen(async (credentialRequest) => {
+        resolve(credentialRequest);
+      });
+      await session.send(post_session_response.data);
+    } catch (e) {
+      reject(e);
+    }
+  });
+
+  let encryptedMessage = getCredentialRequestFromExtension;
+
+  console.log("New encrypted message:", encryptedMessage)
 
   return session;
 }

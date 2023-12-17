@@ -10,5 +10,9 @@ export async function fetchCType(
 
 export function isUserAdmin() {
   const role = authProvider.getRole();
+<<<<<<< HEAD
   return role === "c"
+=======
+  return role === "admin";
+>>>>>>> kpi_frontend
 }

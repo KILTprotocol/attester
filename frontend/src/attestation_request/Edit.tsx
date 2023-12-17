@@ -8,7 +8,7 @@ import {
   TextInput,
   Toolbar,
   useNotify,
-  useRecordContext
+  useRecordContext,
 } from "react-admin";
 import ReactJson, { InteractionProps } from "react-json-view";
 import Typography from "@mui/material/Typography";
@@ -16,11 +16,11 @@ import {
   Claim,
   IClaim,
   IClaimContents,
-  Credential as KiltCredentials
+  Credential as KiltCredentials,
 } from "@kiltprotocol/sdk-js";
 import { useState } from "react";
 import { fetchCType } from "../utils";
-import { AttestationRequsts } from "../types";
+import { AttestationRequst } from "../types";
 
 export const AttestationEdit = () => {
   //states
@@ -41,7 +41,7 @@ export const AttestationEdit = () => {
 
   // elements
   const EditClaim = () => {
-    const record = useRecordContext<AttestationRequsts>();
+    const record = useRecordContext<AttestationRequst>();
     const onEdit = async (data: InteractionProps) => {
       setIsLoading(true);
       let ctypeDetails = await fetchCType(record.ctype_hash);
@@ -78,7 +78,7 @@ export const AttestationEdit = () => {
   };
 
   const CustomToolBar = (props: any) => {
-    const record = useRecordContext<AttestationRequsts>();
+    const record = useRecordContext<AttestationRequst>();
 
     return (
       <Toolbar {...props}>

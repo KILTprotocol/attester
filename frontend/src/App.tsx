@@ -4,11 +4,11 @@ import { Layout, Login } from "./layout";
 import { darkTheme, lightTheme } from "./layout/themes";
 import { dataProvider } from "./dataProvider";
 import { authProvider } from "./authProvider";
-import { Dashboard } from "./Dashboard";
+import Dashboard from "./Dashboard";
 import {
   AttestationEdit,
   AttestationList,
-  AttestationCreate
+  AttestationCreate,
 } from "./attestation_request";
 
 export const App = () => (

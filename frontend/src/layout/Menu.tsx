@@ -14,8 +14,8 @@ const Menu = () => {
         transition: (theme) =>
           theme.transitions.create("width", {
             easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen
-          })
+            duration: theme.transitions.duration.leavingScreen,
+          }),
       }}
     >
       <DashboardMenuItem />
