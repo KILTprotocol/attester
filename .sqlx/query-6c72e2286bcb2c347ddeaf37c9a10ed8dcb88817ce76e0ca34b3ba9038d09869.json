@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT COUNT (*) FROM attestation_requests",
+  "query": "SELECT COUNT(*) FROM attestation_requests WHERE approved = FALSE AND deleted_at IS NULL;",
   "describe": {
     "columns": [
       {
@@ -16,5 +16,5 @@
       null
     ]
   },
-  "hash": "69c6f4be437b59c1a1c3791cf0f735cb9f30d3f2acf61f5938d6c3d962ec4929"
+  "hash": "6c72e2286bcb2c347ddeaf37c9a10ed8dcb88817ce76e0ca34b3ba9038d09869"
 }

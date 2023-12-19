@@ -255,7 +255,7 @@ pub async fn generate_new_session(pool: &PgPool) -> Result<Uuid, sqlx::Error> {
     Ok(result.id)
 }
 
-pub async fn get_session(pool: &PgPool, id: Uuid) -> Result<Session, sqlx::Error> {
+pub async fn get_session(pool: &PgPool, id: &Uuid) -> Result<Session, sqlx::Error> {
     sqlx::query_as!(Session, "SELECT * FROM session_request WHERE id = $1;", id)
         .fetch_one(pool)
         .await
@@ -263,7 +263,7 @@ pub async fn get_session(pool: &PgPool, id: Uuid) -> Result<Session, sqlx::Error
 
 pub async fn update_session(
     pool: &PgPool,
-    id: Uuid,
+    id: &Uuid,
     encryption_key_uri: &str,
 ) -> Result<Session, sqlx::Error> {
     sqlx::query_as!(

@@ -43,9 +43,10 @@ export const AttestationCreate = () => {
 
   //callbacks
   const handleSelectedCtype = async (ctype: string) => {
-    setCtypeHash(ctype);
+    const fmtCtype = ctype.trim()
+    setCtypeHash(fmtCtype);
     try {
-      const ctypeDetails = await fetchCType(ctype as any);
+      const ctypeDetails = await fetchCType(fmtCtype as any);
       const claimContent: any = {};
       Object.entries(ctypeDetails.cType.properties).map(
         ([key, type]) =>
@@ -55,7 +56,7 @@ export const AttestationCreate = () => {
       setClaimContent(claimContent);
     } catch {
       setClaimContent(undefined);
-      notify("CType does not exists");
+      notify("CType does not exists", { type: "error" });
     }
   };
 
@@ -74,9 +75,9 @@ export const AttestationCreate = () => {
         claimContent,
         claimer as DidUri
       );
-      return KiltCredential.fromClaim(claim)
+      return KiltCredential.fromClaim(claim);
     } catch (e) {
-      console.error(e)
+      console.error(e);
       notify("Ctype Verification failed");
     }
   };

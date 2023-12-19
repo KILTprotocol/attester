@@ -15,15 +15,18 @@ import DoneIcon from "@mui/icons-material/Done";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CircularProgress from "@mui/material/CircularProgress";
 import Tooltip from "@mui/material/Tooltip";
-import DownloadIcon from '@mui/icons-material/Download';
+import DownloadIcon from "@mui/icons-material/Download";
 import { ICType } from "@kiltprotocol/sdk-js";
 
 import { AttestationRequest } from "../types";
 import { useState } from "react";
 import { getAxiosClient } from "../dataProvider";
-import { apiWindow, getSession, useCompatibleExtensions } from "../session";
+import {
+  apiWindow,
+  requestAttestation,
+  useCompatibleExtensions,
+} from "../session";
 import { isUserAdmin } from "../utils";
-
 
 const ExpandAttestation = () => {
   const record = useRecordContext<AttestationRequest>();
@@ -36,89 +39,76 @@ const ExpandAttestation = () => {
   );
 };
 
-const ApproveButton = () => {
-  const record = useRecordContext<AttestationRequest>();
-  const apiURL = import.meta.env.VITE_SIMPLE_REST_URL;
-  const [isLoading, setIsLoading] = useState(false);
-  const notify = useNotify();
-  const refresh = useRefresh();
-
-  const handleClick = async () => {
-    if (isLoading) {
-      return;
-    }
-
-    setIsLoading(true);
-    let client = await getAxiosClient();
-    await client.put(apiURL + "/attestation_request/" + record.id + "/approve");
-    setTimeout(() => {
-      setIsLoading(false);
-      refresh();
-    }, 60_000);
-    notify("Transaction for approval is fired");
-  };
-
-  return (
-    <Tooltip title="Approve">
-      <span>
-        <Fab
-          color="primary"
-          aria-label="add"
-          size="small"
-          disabled={record.approved || isLoading}
-          onClick={handleClick}
-          sx={{ marginLeft: "1em", marginRight: "1em" }}
-        >
-          {isLoading ? <CircularProgress color="error" /> : <DoneIcon />}
-        </Fab>
-      </span>
-    </Tooltip>
-  );
-};
-
 const DisableEditButton = () => {
   const record = useRecordContext<AttestationRequest>();
   return <EditButton disabled={record.approved} />;
 };
 
-const RevokeButton = () => {
+const RevokeApproveButton = () => {
   const record = useRecordContext<AttestationRequest>();
   const [isLoading, setIsLoading] = useState(false);
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL;
   const notify = useNotify();
   const refresh = useRefresh();
 
-  const handleClick = async () => {
+  const handleClick = async (url: string) => {
     if (isLoading) {
       return;
     }
     setIsLoading(true);
     let client = await getAxiosClient();
 
-    await client.put(apiURL + "/attestation_request/" + record.id + "/revoke");
+    await client.put(url);
     setTimeout(() => {
       setIsLoading(false);
       refresh();
       notify("Transaction is finished!");
     }, 60_000);
-    notify("Transaction for revokation is fired.");
+    notify("Transaction is fired.");
   };
 
   return (
-    <Tooltip title="Revoke">
-      <span>
-        <Fab
-          color="error"
-          aria-label="revoke"
-          size="small"
-          disabled={!record.approved || record.revoked || isLoading}
-          onClick={handleClick}
-          sx={{ marginLeft: "1em", marginRight: "1em" }}
-        >
-          {isLoading ? <CircularProgress /> : <RemoveIcon />}
-        </Fab>
-      </span>
-    </Tooltip>
+    <>
+      {!record.approved ? (
+        <Tooltip title="Approve">
+          <span>
+            <Fab
+              color="primary"
+              aria-label="add"
+              size="small"
+              disabled={record.approved || isLoading}
+              onClick={() =>
+                handleClick(
+                  apiURL + "/attestation_request/" + record.id + "/approve"
+                )
+              }
+              sx={{ marginLeft: "1em", marginRight: "1em" }}
+            >
+              {isLoading ? <CircularProgress color="error" /> : <DoneIcon />}
+            </Fab>
+          </span>
+        </Tooltip>
+      ) : (
+        <Tooltip title="Revoke">
+          <span>
+            <Fab
+              color="error"
+              aria-label="revoke"
+              size="small"
+              disabled={!record.approved || record.revoked || isLoading}
+              onClick={() =>
+                handleClick(
+                  apiURL + "/attestation_request/" + record.id + "/revoke"
+                )
+              }
+              sx={{ marginLeft: "1em", marginRight: "1em" }}
+            >
+              {isLoading ? <CircularProgress /> : <RemoveIcon />}
+            </Fab>
+          </span>
+        </Tooltip>
+      )}
+    </>
   );
 };
 
@@ -126,16 +116,21 @@ const DownloadCredential = () => {
   const record = useRecordContext<AttestationRequest>();
   const [isLoading, setIsLoading] = useState(false);
   const { kilt } = apiWindow;
+  const notify = useNotify();
   const { extensions } = useCompatibleExtensions();
   const hasExtension = extensions.length > 0;
 
   const handleClick = async () => {
     setIsLoading(true);
-    const extension = "sporran"
+    const extension = "sporran";
 
-    const session = await getSession(kilt[extension], record.id);
-
-
+    try {
+      await requestAttestation(kilt[extension], record.id);
+    } catch (e) {
+      console.error(e);
+      notify("Could not request Credential", { type: "error" });
+    }
+    notify("Credential is downloaded into wallet");
     setIsLoading(false);
   };
 
@@ -147,12 +142,10 @@ const DownloadCredential = () => {
             color="success"
             aria-label="download"
             size="small"
-
             disabled={!record.approved}
             onClick={handleClick}
             sx={{ marginLeft: "1em", marginRight: "1em" }}
           >
-
             {isLoading ? <CircularProgress /> : <DownloadIcon />}
           </Fab>
         </Tooltip>
@@ -187,8 +180,7 @@ export const AttestationList = () => {
           source="ctype_hash"
           baseURL="https://ctypehub.galaniprojects.de/ctype/"
         />
-        {isUserAdmin() && <ApproveButton />}
-        {isUserAdmin() && <RevokeButton />}
+        {isUserAdmin() && <RevokeApproveButton />}
         <DownloadCredential />
         <DisableEditButton />
       </Datagrid>

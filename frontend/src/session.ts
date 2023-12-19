@@ -1,7 +1,6 @@
-import { DidUri } from '@kiltprotocol/sdk-js';
-import { useState, useEffect } from 'react';
-import { getAxiosClient } from './dataProvider';
-
+import { DidUri } from "@kiltprotocol/sdk-js";
+import { useState, useEffect } from "react";
+import { getAxiosClient } from "./dataProvider";
 
 interface EncryptedMessage {
   receiverKeyUri: string;
@@ -12,7 +11,9 @@ interface EncryptedMessage {
 }
 
 interface PubSubSession {
-  listen: (callback: (message: EncryptedMessage) => Promise<void>) => Promise<void>;
+  listen: (
+    callback: (message: EncryptedMessage) => Promise<void>
+  ) => Promise<void>;
   close: () => Promise<void>;
   send: (message: EncryptedMessage) => Promise<void>;
   encryptionKeyUri: string;
@@ -21,11 +22,18 @@ interface PubSubSession {
 }
 
 export interface InjectedWindowProvider {
-  startSession: (dAppName: string, dAppEncryptionKeyUri: string, challenge: string) => Promise<PubSubSession>;
+  startSession: (
+    dAppName: string,
+    dAppEncryptionKeyUri: string,
+    challenge: string
+  ) => Promise<PubSubSession>;
   name: string;
   version: string;
-  specVersion: '3.0';
-  signWithDid: (data: string, didKeyUri: DidUri) => Promise<{ didKeyUri: string; signature: string }>;
+  specVersion: "3.0";
+  signWithDid: (
+    data: string,
+    didKeyUri: DidUri
+  ) => Promise<{ didKeyUri: string; signature: string }>;
   getDidList: () => Promise<Array<{ did: DidUri }>>;
 }
 
@@ -33,31 +41,33 @@ export const apiWindow = window as unknown as {
   kilt: Record<string, InjectedWindowProvider>;
 };
 
-
 export function useCompatibleExtensions() {
   const [extensions, setExtensions] = useState(getCompatibleExtensions());
   useEffect(() => {
     function handler() {
       setExtensions(getCompatibleExtensions());
     }
-    window.dispatchEvent(new CustomEvent('kilt-dapp#initialized'));
-    window.addEventListener('kilt-extension#initialized', handler);
-    return () => window.removeEventListener('kilt-extension#initialized', handler);
+    window.dispatchEvent(new CustomEvent("kilt-dapp#initialized"));
+    window.addEventListener("kilt-extension#initialized", handler);
+    return () =>
+      window.removeEventListener("kilt-extension#initialized", handler);
   }, []);
 
   return { extensions };
 }
 
-
 export function getCompatibleExtensions(): Array<string> {
   return Object.entries(apiWindow.kilt)
-    .filter(([, provider]) => provider.specVersion.startsWith('3.'))
+    .filter(([, provider]) => provider.specVersion.startsWith("3."))
     .map(([name]) => name);
 }
 
-export async function getSession(provider: InjectedWindowProvider, attestationId: string): Promise<PubSubSession> {
+export async function requestAttestation(
+  provider: InjectedWindowProvider,
+  attestationId: string
+): Promise<void> {
   if (!provider) {
-    throw new Error('No provider');
+    throw new Error("No provider");
   }
 
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL;
@@ -69,51 +79,73 @@ export async function getSession(provider: InjectedWindowProvider, attestationId
   let get_challenge_response = await client.get(challengeUrl);
 
   if (get_challenge_response.status !== 200) {
-    throw new Error('No valid challenge received');
+    throw new Error("No valid challenge received");
   }
 
   const challenge = get_challenge_response.data;
-  const session = await provider.startSession(challenge.dAppName, challenge.dAppEncryptionKeyUri, challenge.challenge);
-
-  console.log("Here is the session", session);
+  const session = await provider.startSession(
+    challenge.dAppName,
+    challenge.dAppEncryptionKeyUri,
+    challenge.challenge
+  );
 
   // post challenge and receive encrypted Message.
   const post_session_response = await client.post(challengeUrl, session);
 
   if (post_session_response.status !== 200) {
-    throw new Error('No valid Session.');
+    throw new Error("No valid Session.");
   }
 
   const session_reference = post_session_response.data;
 
   const termsRequestData = {
     challenge: session_reference,
-    attestationId
+    attestationId,
   };
 
-  let get_terms_response = await client.post(credentialUrl + "/terms", termsRequestData);
+  let get_terms_response = await client.post(
+    credentialUrl + "/terms/" + session_reference + "/" + attestationId,
+    termsRequestData
+  );
 
-  console.log("terms requests:", get_terms_response)
-
-
-  const getCredentialRequestFromExtension = await new Promise(async (resolve, reject) => {
-    try {
-      await session.listen(async (credentialRequest) => {
-        resolve(credentialRequest);
-      });
-      await session.send(get_terms_response.data);
-    } catch (e) {
-      reject(e);
+  const getCredentialRequestFromExtension = await new Promise(
+    async (resolve, reject) => {
+      try {
+        await session.listen(async (credentialRequest) => {
+          resolve(credentialRequest);
+        });
+        await session.send(get_terms_response.data);
+      } catch (e) {
+        reject(e);
+      }
     }
-  });
+  );
 
-  let encryptedMessage = getCredentialRequestFromExtension;
+  let attestation_message = await client.post(
+    credentialUrl,
+    getCredentialRequestFromExtension
+  );
 
-  console.log(encryptedMessage);
+  if (attestation_message.status !== 200) {
+    throw new Error("No valid attestation message");
+  }
 
-  let attestation_message = await client.post(credentialUrl, getCredentialRequestFromExtension);
+  const getApprovalFromExtension = await new Promise(
+    async (resolve, reject) => {
+      try {
+        await session.listen(async (approval) => {
+          resolve(approval);
+        });
+        await session.send(attestation_message.data);
+      } catch (e) {
+        reject(e);
+      }
+    }
+  );
 
-  console.log("Final message: ", attestation_message);
+  let bla = getApprovalFromExtension;
 
-  return session;
+  console.log(bla)
+
+
 }

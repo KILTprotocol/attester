@@ -1,11 +1,12 @@
 use actix_web::{post, web, HttpResponse, Scope};
 use sodiumoxide::crypto::box_;
+use uuid::Uuid;
 
 use crate::{
     database::{
         dto::{
             Credential, EncryptedMessage, Message, MessageBody, RequestAttestationMessageContent,
-            RequestTerms, SubmitAttestationMessageBody, SubmitTermsMessageContent,
+            SubmitAttestationMessageBody, SubmitTermsMessageContent,
         },
         querys::{get_attestation_request_by_id, get_session},
     },
@@ -13,14 +14,31 @@ use crate::{
     AppState,
 };
 
-#[post("")]
+#[post("/{session}")]
 async fn request_attestation(
     state: web::Data<AppState>,
     encrypted_message: web::Json<EncryptedMessage>,
+    session_id: web::Path<Uuid>,
 ) -> Result<HttpResponse, AppError> {
-    let sender = &encrypted_message.sender_key_uri;
-    let others_pubkey =
-        crate::kilt::get_encryption_key_from_fulldid_key_uri(sender, &state.chain_client).await?;
+    let session = get_session(&state.db_executor, &session_id).await?;
+
+    if session.encryption_key_uri.is_none() {
+        log::error!(
+            "Found session without encryption key uri in send terms: {:?}",
+            session_id
+        );
+        Err(actix_web::error::ErrorBadRequest(
+            "Session set up not completed",
+        ))?
+    }
+
+    let receiver_key_uri = session.encryption_key_uri.unwrap();
+
+    let others_pubkey = crate::kilt::get_encryption_key_from_fulldid_key_uri(
+        &encrypted_message.sender_key_uri,
+        &state.chain_client,
+    )
+    .await?;
 
     let decrypted_message_bytes = box_::open(
         &encrypted_message.cipher_text,
@@ -28,7 +46,7 @@ async fn request_attestation(
         &others_pubkey,
         &state.encryption_key,
     )
-    .map_err(|_| AppError::Challenge("Unable to decrypt".to_string()))?;
+    .map_err(|_| AppError::Attestation("Unable to decrypt"))?;
 
     let decrypted_message: Message<RequestAttestationMessageContent> =
         serde_json::from_slice(&decrypted_message_bytes).unwrap();
@@ -50,7 +68,7 @@ async fn request_attestation(
         },
         created_at: 0,
         sender: state.session.key_uri.clone(),
-        receiver: sender.clone(),
+        receiver: receiver_key_uri.clone(),
         message_id: uuid::Uuid::new_v4().to_string(),
         in_reply_to: None,
         references: None,
@@ -65,30 +83,30 @@ async fn request_attestation(
         cipher_text: encrypted_msg,
         nonce,
         sender_key_uri: state.session.key_uri.clone(),
-        receiver_key_uri: sender.to_string(),
+        receiver_key_uri,
     };
 
     Ok(HttpResponse::Ok().json(response))
 }
 
-#[post("/terms")]
+#[post("/terms/{session}/{attestation_id}")]
 async fn send_terms(
     state: web::Data<AppState>,
-    body: web::Json<RequestTerms>,
+    param: web::Path<(Uuid, Uuid)>,
 ) -> Result<HttpResponse, AppError> {
-    let RequestTerms {
-        challenge,
-        attestation_id,
-    } = body.0;
+    let session_id = param.0;
+    let attestation_id = param.1;
 
-    let session = get_session(&state.db_executor, challenge).await?;
+    let session = get_session(&state.db_executor, &session_id).await?;
 
     if session.encryption_key_uri.is_none() {
         log::error!(
-            "Found session without encryption key uri in send terms: {}",
-            challenge
+            "Found session without encryption key uri in send terms: {:?}",
+            session_id
         );
-        return Ok(HttpResponse::BadRequest().json("Session set up not completed"));
+        Err(actix_web::error::ErrorBadRequest(
+            "Session set up not completed",
+        ))?
     }
 
     let sender_key_uri = session.encryption_key_uri.unwrap();
@@ -106,7 +124,7 @@ async fn send_terms(
         .split('#')
         .collect::<Vec<&str>>()
         .first()
-        .ok_or_else(|| AppError::Challenge("Invalid Key URI for sender".into()))?
+        .ok_or_else(|| AppError::Attestation("Invalid Key URI for sender"))?
         .to_owned();
 
     let mut claim = credential.claim;

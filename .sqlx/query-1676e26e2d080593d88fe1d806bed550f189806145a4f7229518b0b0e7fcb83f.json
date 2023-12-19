@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE attestation_requests SET credential = $1 WHERE id = $2 AND approved = false \n        RETURNING id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as \"tx_state: TxState\"",
+  "query": "SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as \"tx_state: TxState\" \n        FROM attestation_requests WHERE id = $1 AND approved = false AND revoked = false AND deleted_at IS NULL",
   "describe": {
     "columns": [
       {
@@ -66,11 +66,10 @@
             "name": "tx_states",
             "kind": {
               "Enum": [
-                "InFlight",
-                "InBlock",
                 "Succeeded",
                 "Failed",
-                "Pending"
+                "Pending",
+                "InFlight"
               ]
             }
           }
@@ -79,7 +78,6 @@
     ],
     "parameters": {
       "Left": [
-        "Jsonb",
         "Uuid"
       ]
     },
@@ -98,5 +96,5 @@
       true
     ]
   },
-  "hash": "d2bc8a7b62c9af9ee6defcfbd365041b86d40f9c61621aa38227b646adbf1bf1"
+  "hash": "1676e26e2d080593d88fe1d806bed550f189806145a4f7229518b0b0e7fcb83f"
 }
