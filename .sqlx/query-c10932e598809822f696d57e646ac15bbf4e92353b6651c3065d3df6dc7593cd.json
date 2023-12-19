@@ -66,11 +66,10 @@
             "name": "tx_states",
             "kind": {
               "Enum": [
-                "InFlight",
-                "InBlock",
                 "Succeeded",
                 "Failed",
-                "Pending"
+                "Pending",
+                "InFlight"
               ]
             }
           }

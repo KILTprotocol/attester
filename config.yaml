@@ -1,0 +1,31 @@
+# OpenDID Config File
+
+# server config
+port: 5656
+frontEndPath: /home/adel/dena-attester/frontend/dist
+production: false
+kiltEndpoint: wss://peregrine.kilt.io:443/parachain-public-ws
+appName: dena-attester
+attesterDidSeed: "pave pattern upon invest humble squirrel cram flight wood travel already hint//did//0"
+attesterAttestationSeed: "pave pattern upon invest humble squirrel cram flight wood travel already hint//did//assertion//0"
+databaseUrl: postgres://dena:secrect@0.0.0.0:5432/attester
+jwtSecret: super-secret-jwt-secret
+payerSeed: "pave pattern upon invest humble squirrel cram flight wood travel already hint"
+
+# session config
+# contains the keyUri, naclSecretKey, naclPublicKey and sessionKey used to communicate with the identity extension
+session:
+  keyUri: did:kilt:4qGqegcXWctkdLToCSFfBAUQE5V5SBdwivaB6miWgXS6C6Cf#0x4b77a1fb88c91ddd6e5ca84c821fa2c9c2f8fddb753c0f63afdda8c75c5e13af
+  naclSecretKey: "0x2f6d186c07aca73f746e4cfe3d2600446bb518c333c77afd4fa44f62aec281b8"
+  naclPublicKey: "0x97b2930e614e781aa46cfec590360fc143435bef0c35edbd515beef98f62b45e"
+  sessionKey: "0x96d977a9f665ac0b05f7ae2efde952089f4de7fb3f453f7065ff3af7496ab339c8cd14d859d42499087f0324c05ac61dcd727672aa35c376438cc8d64a46a25c"
+  sessionTtl: 3600
+
+# well known DID
+wellKnownDid:
+  did: did:kilt:4qGqegcXWctkdLToCSFfBAUQE5V5SBdwivaB6miWgXS6C6Cf
+  origin: http://localhost:5656
+  keyUri: did:kilt:4qGqegcXWctkdLToCSFfBAUQE5V5SBdwivaB6miWgXS6C6Cf#0x3f118f44708523d63deb4a88bd6c18591373745e9c72e6ac1afc21e89f48242c
+  seed: "pave pattern upon invest humble squirrel cram flight wood travel already hint//did//assertion//0"
+
+ 
