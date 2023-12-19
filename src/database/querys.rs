@@ -1,19 +1,15 @@
-use crate::{
-    database::dto::{
-        AttestationCreatedOverTime, AttestationKPIs, AttestationResponse, Pagination, TxState,
-    },
-    error::AppError,
-};
-
 use sqlx::{postgres::PgQueryResult, PgPool, Postgres, QueryBuilder};
 use uuid::Uuid;
 
-use super::dto::Credential;
+use crate::database::dto::{
+    AttestationCreatedOverTime, AttestationKPIs, AttestationResponse, Credential, Pagination,
+    Session, TxState,
+};
 
 pub async fn get_attestation_request_by_id(
     attestation_request_id: &Uuid,
     db_executor: &PgPool,
-) -> Result<AttestationResponse, AppError> {
+) -> Result<AttestationResponse, sqlx::Error> {
     sqlx::query_as!(
         AttestationResponse,
         r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState"
@@ -22,7 +18,6 @@ pub async fn get_attestation_request_by_id(
     )
     .fetch_one(db_executor)
     .await
-    .map_err(AppError::from)
 }
 
 pub async fn get_attestations_count(db_executor: &PgPool) -> i64 {
@@ -35,11 +30,9 @@ pub async fn get_attestations_count(db_executor: &PgPool) -> i64 {
 pub async fn get_attestation_requests(
     pagination: Pagination,
     db_executor: &PgPool,
-) -> Result<Vec<AttestationResponse>, AppError> {
+) -> Result<Vec<AttestationResponse>, sqlx::Error> {
     let (query, bind_values) = construct_query(&pagination);
-    get_attestations(&query, bind_values, db_executor)
-        .await
-        .map_err(AppError::from)
+    get_attestations(&query, bind_values, db_executor).await
 }
 
 pub fn construct_query(pagination: &Pagination) -> (String, Vec<String>) {
@@ -97,23 +90,22 @@ async fn get_attestations(
 pub async fn delete_attestation_request(
     attestation_id: &Uuid,
     db_executor: &PgPool,
-) -> Result<PgQueryResult, AppError> {
+) -> Result<PgQueryResult, sqlx::Error> {
     sqlx::query!(
         "UPDATE attestation_requests SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL",
         attestation_id
     )
     .execute(db_executor)
     .await
-    .map_err(AppError::from)
 }
 
 pub async fn insert_attestation_request(
     credential: &Credential,
     db_executor: &PgPool,
-) -> Result<AttestationResponse, AppError> {
+) -> Result<AttestationResponse, sqlx::Error> {
     let claimer = credential.claim.owner.clone();
     let ctype_hash = credential.claim.ctype_hash.clone();
-    let result = sqlx::query_as!(
+    sqlx::query_as!(
         AttestationResponse,
         r#"INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) 
         RETURNING  id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState""#,
@@ -122,15 +114,13 @@ pub async fn insert_attestation_request(
         serde_json::json!(credential)
     )
     .fetch_one(db_executor)
-    .await;
-
-    result.map_err(AppError::from)
+    .await
 }
 
 pub async fn can_approve_attestation_tx(
     attestation_request_id: &Uuid,
     tx: &mut sqlx::Transaction<'_, Postgres>,
-) -> Result<AttestationResponse, AppError> {
+) -> Result<AttestationResponse, sqlx::Error> {
     sqlx::query_as!(
         AttestationResponse,
         r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState" 
@@ -139,52 +129,48 @@ pub async fn can_approve_attestation_tx(
     )
     .fetch_one(&mut **tx)
     .await
-    .map_err(AppError::from)
 }
 
 pub async fn mark_attestation_request_in_flight(
     attestation_request_id: &Uuid,
     db_executor: &PgPool,
-) -> Result<PgQueryResult, AppError> {
+) -> Result<PgQueryResult, sqlx::Error> {
     sqlx::query!(
         "UPDATE attestation_requests SET tx_state = 'InFlight' WHERE id = $1",
         attestation_request_id
     )
     .execute(db_executor)
     .await
-    .map_err(AppError::from)
 }
 
 pub async fn record_attestation_request_failed(
     attestation_request_id: &Uuid,
     tx: &mut sqlx::Transaction<'_, Postgres>,
-) -> Result<PgQueryResult, AppError> {
+) -> Result<PgQueryResult, sqlx::Error> {
     sqlx::query!(
         "UPDATE attestation_requests SET tx_state = 'Failed' WHERE id = $1",
         attestation_request_id
     )
     .execute(&mut **tx)
     .await
-    .map_err(AppError::from)
 }
 
 pub async fn approve_attestation_request(
     attestation_request_id: &Uuid,
     tx: &mut sqlx::Transaction<'_, Postgres>,
-) -> Result<PgQueryResult, AppError> {
+) -> Result<PgQueryResult, sqlx::Error> {
     sqlx::query!(
         "UPDATE attestation_requests SET approved = true, tx_state = 'Succeeded', approved_at = NOW() WHERE id = $1 AND deleted_at IS NULL",
         attestation_request_id
     )
     .execute(&mut **tx)
     .await
-    .map_err(AppError::from)
 }
 
 pub async fn can_revoke_attestation(
     attestation_request_id: &Uuid,
     tx: &mut sqlx::Transaction<'_, Postgres>,
-) -> Result<AttestationResponse, AppError> {
+) -> Result<AttestationResponse, sqlx::Error> {
     sqlx::query_as!(
         AttestationResponse,
         r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState" 
@@ -193,27 +179,25 @@ pub async fn can_revoke_attestation(
     )
     .fetch_one(&mut **tx)
     .await
-    .map_err(AppError::from)
 }
 
 pub async fn revoke_attestation_request(
     attestation_request_id: &Uuid,
     tx: &mut sqlx::Transaction<'_, Postgres>,
-) -> Result<PgQueryResult, AppError> {
+) -> Result<PgQueryResult, sqlx::Error> {
     sqlx::query!(
         "UPDATE attestation_requests SET revoked = true, revoked_at = NOW() WHERE id = $1 AND deleted_at IS NULL",
         attestation_request_id
     )
     .execute(&mut **tx)
     .await
-    .map_err(AppError::from)
 }
 
 pub async fn update_attestation_request(
     attestation_request_id: &Uuid,
     credential: &Credential,
     db_executor: &PgPool,
-) -> Result<AttestationResponse, AppError> {
+) -> Result<AttestationResponse, sqlx::Error> {
     sqlx::query_as!(
         AttestationResponse,
         r#"UPDATE attestation_requests SET credential = $1 WHERE id = $2 AND approved = false AND deleted_at IS NULL 
@@ -223,7 +207,6 @@ pub async fn update_attestation_request(
     )
     .fetch_one(db_executor)
     .await
-    .map_err(AppError::from)
 }
 
 pub async fn attestation_requests_kpis(pool: &PgPool) -> Result<AttestationKPIs, sqlx::Error> {
@@ -265,18 +248,30 @@ pub async fn attestation_requests_kpis(pool: &PgPool) -> Result<AttestationKPIs,
     })
 }
 
-pub async fn generate_new_session(pool: &PgPool) -> Result<Uuid, AppError> {
+pub async fn generate_new_session(pool: &PgPool) -> Result<Uuid, sqlx::Error> {
     let result = sqlx::query!("INSERT INTO session_request DEFAULT VALUES RETURNING id")
         .fetch_one(pool)
-        .await
-        .map_err(AppError::from)?;
+        .await?;
     Ok(result.id)
 }
 
-pub async fn remove_session(pool: &PgPool, id: Uuid) -> Result<bool, AppError> {
-    let result = sqlx::query!("DELETE FROM session_request WHERE id = $1;", id)
-        .execute(pool)
+pub async fn get_session(pool: &PgPool, id: Uuid) -> Result<Session, sqlx::Error> {
+    sqlx::query_as!(Session, "SELECT * FROM session_request WHERE id = $1;", id)
+        .fetch_one(pool)
         .await
-        .map_err(AppError::from)?;
-    Ok(result.rows_affected() == 1)
+}
+
+pub async fn update_session(
+    pool: &PgPool,
+    id: Uuid,
+    encryption_key_uri: &str,
+) -> Result<Session, sqlx::Error> {
+    sqlx::query_as!(
+        Session,
+        "UPDATE session_request SET encryption_key_uri = $1 WHERE id = $2 RETURNING *",
+        encryption_key_uri,
+        id,
+    )
+    .fetch_one(pool)
+    .await
 }

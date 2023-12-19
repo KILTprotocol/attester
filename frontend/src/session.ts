@@ -61,11 +61,12 @@ export async function getSession(provider: InjectedWindowProvider, attestationId
   }
 
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL;
-  const url = apiURL + "/challenge";
+  const challengeUrl = apiURL + "/challenge";
+  const credentialUrl = apiURL + "/credential";
 
   let client = await getAxiosClient();
 
-  let get_challenge_response = await client.get(url);
+  let get_challenge_response = await client.get(challengeUrl);
 
   if (get_challenge_response.status !== 200) {
     throw new Error('No valid challenge received');
@@ -74,26 +75,33 @@ export async function getSession(provider: InjectedWindowProvider, attestationId
   const challenge = get_challenge_response.data;
   const session = await provider.startSession(challenge.dAppName, challenge.dAppEncryptionKeyUri, challenge.challenge);
 
-  const response = {
-    ...session,
-    attestationId
-  }
+  console.log("Here is the session", session);
 
   // post challenge and receive encrypted Message.
-  let post_session_response = await client.post(url, response);
+  const post_session_response = await client.post(challengeUrl, session);
 
   if (post_session_response.status !== 200) {
     throw new Error('No valid Session.');
   }
 
-  console.log(post_session_response.data);
+  const session_reference = post_session_response.data;
+
+  const termsRequestData = {
+    challenge: session_reference,
+    attestationId
+  };
+
+  let get_terms_response = await client.post(credentialUrl + "/terms", termsRequestData);
+
+  console.log("terms requests:", get_terms_response)
+
 
   const getCredentialRequestFromExtension = await new Promise(async (resolve, reject) => {
     try {
       await session.listen(async (credentialRequest) => {
         resolve(credentialRequest);
       });
-      await session.send(post_session_response.data);
+      await session.send(get_terms_response.data);
     } catch (e) {
       reject(e);
     }
@@ -101,7 +109,11 @@ export async function getSession(provider: InjectedWindowProvider, attestationId
 
   let encryptedMessage = getCredentialRequestFromExtension;
 
-  console.log("New encrypted message:", encryptedMessage)
+  console.log(encryptedMessage);
+
+  let attestation_message = await client.post(credentialUrl, getCredentialRequestFromExtension);
+
+  console.log("Final message: ", attestation_message);
 
   return session;
 }

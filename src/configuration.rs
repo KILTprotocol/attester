@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 use sodiumoxide::crypto::box_::SecretKey;
 use subxt::{
-    ext::sp_core::{crypto::SecretStringError, sr25519::Pair, Pair as PairTrait},
+    ext::sp_core::{sr25519::Pair, Pair as PairTrait},
     tx::PairSigner,
     utils::AccountId32,
     OnlineClient,
 };
 
-use crate::tx::KiltConfig;
+use crate::kilt::KiltConfig;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -33,7 +33,6 @@ pub struct SessionConfig {
     pub key_uri: String,
     pub nacl_public_key: String,
     pub nacl_secret_key: String,
-    pub session_ttl: i64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -46,29 +45,27 @@ pub struct WellKnownDidConfig {
 }
 
 impl Configuration {
-    pub fn get_credential_signer(&self) -> Result<PairSigner<KiltConfig, Pair>, SecretStringError> {
+    pub fn get_credential_signer(&self) -> anyhow::Result<PairSigner<KiltConfig, Pair>> {
         let pair = Pair::from_string_with_seed(&self.attester_attestation_seed, None)?.0;
         Ok(PairSigner::new(pair))
     }
 
-    pub fn get_payer_signer(&self) -> Result<PairSigner<KiltConfig, Pair>, SecretStringError> {
+    pub fn get_payer_signer(&self) -> anyhow::Result<PairSigner<KiltConfig, Pair>> {
         let pair = Pair::from_string_with_seed(&self.payer_seed, None)?.0;
         Ok(PairSigner::new(pair))
     }
 
-    pub async fn get_client(&self) -> Result<OnlineClient<KiltConfig>, subxt::Error> {
+    pub async fn get_client(&self) -> anyhow::Result<OnlineClient<KiltConfig>> {
         Ok(OnlineClient::<KiltConfig>::from_url(&self.kilt_endpoint).await?)
     }
 
-    pub fn get_did(&self) -> Result<AccountId32, SecretStringError> {
+    pub fn get_did(&self) -> anyhow::Result<AccountId32> {
         let pair = Pair::from_string_with_seed(&self.attester_did_seed, None)?.0;
         Ok(pair.public().into())
     }
 
-    pub fn get_nacl_secret_key(&self) -> SecretKey {
-        let raw_key = hex::decode(self.session.nacl_secret_key.trim_start_matches("0x")).unwrap();
-        SecretKey::from_slice(&raw_key)
-            .ok_or(Err::<(), i32>(0))
-            .unwrap()
+    pub fn get_nacl_secret_key(&self) -> anyhow::Result<SecretKey> {
+        let raw_key = hex::decode(self.session.nacl_secret_key.trim_start_matches("0x"))?;
+        SecretKey::from_slice(&raw_key).ok_or(anyhow::anyhow!("Generating secret key failed"))
     }
 }

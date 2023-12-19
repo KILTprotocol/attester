@@ -21,11 +21,9 @@ pub enum AppError {
     Challenge(String),
     #[error("Light DID error: {0}")]
     LightDid(String),
+    #[error("DID error: {0}")]
+    Did(&'static str),
 }
-
-// Is thread safe. No data races or similar can happen.
-unsafe impl Send for AppError {}
-unsafe impl Sync for AppError {}
 
 impl actix_web::error::ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {

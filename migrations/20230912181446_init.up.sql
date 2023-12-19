@@ -36,5 +36,6 @@ BEGIN
 END $$;
 
 CREATE TABLE IF NOT EXISTS session_request (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
+    encryption_key_uri VARCHAR(500)
 );

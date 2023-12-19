@@ -19,7 +19,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { ICType } from "@kiltprotocol/sdk-js";
 
 import { AttestationRequest } from "../types";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { getAxiosClient } from "../dataProvider";
 import { apiWindow, getSession, useCompatibleExtensions } from "../session";
 import { isUserAdmin } from "../utils";
@@ -125,7 +125,6 @@ const RevokeButton = () => {
 const DownloadCredential = () => {
   const record = useRecordContext<AttestationRequest>();
   const [isLoading, setIsLoading] = useState(false);
-  const notify = useNotify();
   const { kilt } = apiWindow;
   const { extensions } = useCompatibleExtensions();
   const hasExtension = extensions.length > 0;
@@ -178,6 +177,7 @@ export const AttestationList = () => {
     <List>
       <Datagrid expand={ExpandAttestation}>
         <TextField source="id" />
+        <TextField source="claimer" />
         <DateField source="created_at" />
         <DateField source="updated_at" />
         <DateField source="approved_at" />
@@ -190,7 +190,6 @@ export const AttestationList = () => {
         {isUserAdmin() && <ApproveButton />}
         {isUserAdmin() && <RevokeButton />}
         <DownloadCredential />
-        <EditButton />
         <DisableEditButton />
       </Datagrid>
     </List>

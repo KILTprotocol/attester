@@ -8,6 +8,7 @@ use subxt::ext::sp_core::H256;
 use uuid::Uuid;
 
 use crate::{
+    auth::User,
     database::{
         dto::{Credential, Pagination, Query},
         querys::{
@@ -20,19 +21,24 @@ use crate::{
     },
     error::AppError,
     utils::{is_user_admin, is_user_allowed_to_see_data, is_user_allowed_to_update_data},
-    AppState, User,
+    AppState,
 };
 
 #[get("/{attestation_request_id}")]
 async fn get_attestation(
-    path: web::Path<Uuid>,
+    attestation_id: web::Path<Uuid>,
     user: ReqData<User>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
-    let attestation_id = path.into_inner();
     let attestation = get_attestation_request_by_id(&attestation_id, &state.db_executor).await?;
-    is_user_allowed_to_see_data(user, &vec![attestation.clone()])?;
-    Ok(HttpResponse::Ok().json(serde_json::to_value(&attestation)?))
+    let is_user_allowed = is_user_allowed_to_see_data(user, &vec![attestation.clone()]);
+    if is_user_allowed {
+        Ok(HttpResponse::Ok().json(serde_json::to_value(&attestation)?))
+    } else {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allowed to see data",
+        ))?
+    }
 }
 
 #[get("")]
@@ -42,26 +48,40 @@ async fn get_attestations(
     pagination_query: web::Query<Query>,
 ) -> Result<HttpResponse, AppError> {
     let mut pagination: Pagination = pagination_query.into_inner().into();
-    if !user.is_admin {
+    if !is_user_admin(&user) {
         pagination.filter = Some(user.id.to_string());
     }
     let content_range = get_attestations_count(&state.db_executor).await;
     let attestation_requests = get_attestation_requests(pagination, &state.db_executor).await?;
     let response = serde_json::to_value(&attestation_requests)?;
-    is_user_allowed_to_see_data(user, &attestation_requests)?;
-    Ok(HttpResponse::Ok()
-        .insert_header(("Content-Range", content_range))
-        .json(response))
+    let is_user_allowed = is_user_allowed_to_see_data(user, &attestation_requests);
+
+    if is_user_allowed {
+        Ok(HttpResponse::Ok()
+            .insert_header(("Content-Range", content_range))
+            .json(response))
+    } else {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allowed to see data",
+        ))?
+    }
 }
 
 #[delete("/{attestation_request_id}")]
 async fn delete_attestation(
-    path: web::Path<Uuid>,
+    attestation_id: web::Path<Uuid>,
     user: ReqData<User>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
-    let attestation_id = path.into_inner();
-    is_user_allowed_to_update_data(user, &attestation_id, &state.db_executor).await?;
+    let is_user_allowed =
+        is_user_allowed_to_update_data(&user, &attestation_id, &state.db_executor).await?;
+
+    if !is_user_allowed {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allowed to see data",
+        ))?
+    }
+
     delete_attestation_request(&attestation_id, &state.db_executor).await?;
     log::info!("Attestation with id {:?} is deleted", attestation_id);
     Ok(HttpResponse::Ok().json("ok"))
@@ -69,10 +89,9 @@ async fn delete_attestation(
 
 #[post("")]
 async fn post_attestation(
-    body: web::Json<Credential>,
+    claim_request: web::Json<Credential>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
-    let claim_request = body.into_inner();
     let attestation = insert_attestation_request(&claim_request, &state.db_executor).await?;
     log::info!(" New attestation with id {:?} is created", attestation.id);
     Ok(HttpResponse::Ok().json(attestation))
@@ -80,14 +99,16 @@ async fn post_attestation(
 
 #[put("/{attestation_request_id}/approve")]
 async fn approve_attestation(
-    path: web::Path<Uuid>,
+    attestation_id: web::Path<Uuid>,
     user: ReqData<User>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
-    // get data
-    let attestation_id = path.into_inner();
     // check role
-    is_user_admin(user)?;
+    if !is_user_admin(&user) {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allowed to see data",
+        ))?
+    }
 
     // start session for db
     let mut tx = state.db_executor.begin().await?;
@@ -96,23 +117,30 @@ async fn approve_attestation(
     let ctype_hash = hex::decode(credential.claim.ctype_hash.trim_start_matches("0x").trim())?;
     let claim_hash = hex::decode(credential.root_hash.trim_start_matches("0x").trim())?;
     if claim_hash.len() != 32 || ctype_hash.len() != 32 {
-        return Ok(HttpResponse::BadRequest().json("Claim hash or ctype hash have a wrong format"));
+        Err(actix_web::error::ErrorBadRequest(
+            "Claim hash or ctype hash have a wrong format",
+        ))?
     }
 
     let payer = state.payer.clone();
     let did = state.attester_did.clone();
-    let api = state.api.clone();
+    let chain_client = state.chain_client.clone();
     let signer = state.signer.clone();
+
+    log::info!(
+        "Attestation with id {:?} is getting approved",
+        attestation_id
+    );
 
     // send tx async
     tokio::spawn(async move {
         let _ = mark_attestation_request_in_flight(&attestation_id, &state.db_executor).await;
 
-        let result_create_claim = crate::tx::create_claim(
+        let result_create_claim = crate::kilt::create_claim(
             H256::from_slice(&claim_hash),
             H256::from_slice(&ctype_hash),
             &did,
-            &api,
+            &chain_client,
             &payer,
             &signer,
         )
@@ -141,23 +169,21 @@ async fn approve_attestation(
         log::info!("Attestation with id {:?} is approved", attestation_id);
     });
 
-    log::info!(
-        "Attestation with id {:?} is getting approved",
-        attestation_id
-    );
     Ok(HttpResponse::Ok().json("ok"))
 }
 
 #[put("/{attestation_request_id}/revoke")]
 async fn revoke_attestation(
-    path: web::Path<Uuid>,
+    attestation_id: web::Path<Uuid>,
     user: ReqData<User>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
-    // get data
-    let attestation_id = path.into_inner();
     // is user allowed
-    is_user_allowed_to_update_data(user, &attestation_id, &state.db_executor).await?;
+    if !is_user_admin(&user) {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allowed to see data",
+        ))?
+    }
 
     // start db tx
     let mut tx = state.db_executor.begin().await?;
@@ -165,39 +191,51 @@ async fn revoke_attestation(
     let credential: Credential = serde_json::from_value(attestation.credential)?;
     let claim_hash = hex::decode(credential.root_hash.trim_start_matches("0x").trim())?;
     if claim_hash.len() != 32 {
-        return Ok(HttpResponse::BadRequest().json("Claim hash has a wrong format"));
+        Err(actix_web::error::ErrorBadRequest(
+            "Claim hash has a wrong format",
+        ))?
     }
 
     let payer = state.payer.clone();
     let did = state.attester_did.clone();
-    let api = state.api.clone();
+    let chain_client = state.chain_client.clone();
     let signer = state.signer.clone();
+
+    log::info!(
+        "Attestation with id {:?} is getting revoked",
+        attestation_id
+    );
 
     // revoke attestation async in db.
     tokio::spawn(async move {
         {
             let _ = mark_attestation_request_in_flight(&attestation_id, &state.db_executor).await;
 
-            if let Err(err) =
-                crate::tx::revoke_claim(H256::from_slice(&claim_hash), &did, &api, &payer, &signer)
-                    .await
+            if let Err(err) = crate::kilt::revoke_claim(
+                H256::from_slice(&claim_hash),
+                &did,
+                &chain_client,
+                &payer,
+                &signer,
+            )
+            .await
             {
-                log::info!("Error: Something went wrong with revoke_claim: {:?}", err);
+                log::error!("Error: Something went wrong with revoke_claim: {:?}", err);
                 let _ = record_attestation_request_failed(&attestation_id, &mut tx).await;
                 let _ = tx.commit().await;
                 return;
             }
 
             if let Err(err) = revoke_attestation_request(&attestation_id, &mut tx).await {
-                log::info!(
-                    "Error: Something went wrong with revoke_attestation_request: {:?}",
+                log::error!(
+                    "Something went wrong with revoke_attestation_request: {:?}",
                     err
                 );
                 return;
             }
 
             if let Err(err) = tx.commit().await {
-                log::info!("Error: Something went wrong with tx.commit: {:?}", err);
+                log::error!("Something went wrong with tx.commit: {:?}", err);
                 return;
             }
 
@@ -205,25 +243,26 @@ async fn revoke_attestation(
         }
     });
 
-    log::info!(
-        "Attestation with id {:?} is getting revoked",
-        attestation_id
-    );
     Ok(HttpResponse::Ok().json("ok"))
 }
 
 #[put("/{attestation_request_id}")]
 async fn update_attestation(
-    path: web::Path<Uuid>,
+    attestation_id: web::Path<Uuid>,
     state: web::Data<AppState>,
     user: ReqData<User>,
-    body: web::Json<Credential>,
+    credential: web::Json<Credential>,
 ) -> Result<HttpResponse, AppError> {
-    // get data
-    let attestation_id = path.into_inner();
-    let credential = body.into_inner();
     // check role
-    is_user_allowed_to_update_data(user, &attestation_id, &state.db_executor).await?;
+    let is_user_allowed =
+        is_user_allowed_to_update_data(&user, &attestation_id, &state.db_executor).await?;
+
+    if !is_user_allowed {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allowed to see data",
+        ))?
+    }
+
     // update
     let attestation =
         update_attestation_request(&attestation_id, &credential, &state.db_executor).await?;
