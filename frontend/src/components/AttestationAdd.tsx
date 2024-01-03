@@ -4,68 +4,68 @@ import {
   SimpleForm,
   Toolbar,
   useNotify,
-} from "react-admin";
-import TextField from "@mui/material/TextField";
+} from "react-admin"
+import TextField from "@mui/material/TextField"
 import {
   ICType,
   IClaimContents,
   Claim,
   DidUri,
   Credential as KiltCredential,
-} from "@kiltprotocol/sdk-js";
-import { useState } from "react";
-import ReactJson, { InteractionProps } from "react-json-view";
-import { fetchCType } from "../utils";
+} from "@kiltprotocol/sdk-js"
+import { useState } from "react"
+import ReactJson, { InteractionProps } from "react-json-view"
+import { fetchCType } from "../utils/utils"
 
 //TODO:fix
 function getDefaultEntryForType({ type }: { type: string }) {
   if (type === "string") {
-    return "";
+    return ""
   }
   if (type === "boolean") {
-    return false;
+    return false
   }
   if (type === "number" || type === "integer") {
-    return 0;
+    return 0
   }
 }
 
 export const AttestationCreate = () => {
   // states
-  const [ctypeHash, setCtypeHash] = useState<String>("");
-  const [claimer, setClaimer] = useState<String>("");
-  const [ctype, setCtypeDetails] = useState<ICType>();
+  const [ctypeHash, setCtypeHash] = useState<string>("")
+  const [claimer, setClaimer] = useState<string>("")
+  const [ctype, setCtypeDetails] = useState<ICType>()
 
-  const [claimContent, setClaimContent] = useState<IClaimContents>();
+  const [claimContent, setClaimContent] = useState<IClaimContents>()
 
   // hooks
-  const notify = useNotify();
+  const notify = useNotify()
 
   //callbacks
   const handleSelectedCtype = async (ctype: string) => {
-    setCtypeHash(ctype);
+    setCtypeHash(ctype)
     try {
-      const ctypeDetails = await fetchCType(ctype as any);
-      const claimContent: any = {};
+      const ctypeDetails = await fetchCType(ctype as any)
+      const claimContent: any = {}
       Object.entries(ctypeDetails.cType.properties).map(
         ([key, type]) =>
           (claimContent[key] = getDefaultEntryForType(type as any))
-      );
-      setCtypeDetails(ctypeDetails.cType);
-      setClaimContent(claimContent);
+      )
+      setCtypeDetails(ctypeDetails.cType)
+      setClaimContent(claimContent)
     } catch {
-      setClaimContent(undefined);
-      notify("CType does not exists");
+      setClaimContent(undefined)
+      notify("CType does not exists")
     }
-  };
+  }
 
   const onEdit = (data: InteractionProps) => {
-    setClaimContent(data.updated_src as IClaimContents);
-  };
+    setClaimContent(data.updated_src as IClaimContents)
+  }
 
   const transformData = () => {
     if (!ctype || !claimContent) {
-      return undefined;
+      return undefined
     }
 
     try {
@@ -73,13 +73,13 @@ export const AttestationCreate = () => {
         ctype,
         claimContent,
         claimer as DidUri
-      );
+      )
       return KiltCredential.fromClaim(claim)
     } catch (e) {
       console.error(e)
-      notify("Ctype Verification failed");
+      notify("Ctype Verification failed")
     }
-  };
+  }
 
   //Elements
   const CustomToolBar = (props: any) => {
@@ -90,8 +90,8 @@ export const AttestationCreate = () => {
           label="Save"
         />
       </Toolbar>
-    );
-  };
+    )
+  }
 
   return (
     <Create transform={transformData} redirect="list">
@@ -122,5 +122,5 @@ export const AttestationCreate = () => {
         )}
       </SimpleForm>
     </Create>
-  );
-};
+  )
+}

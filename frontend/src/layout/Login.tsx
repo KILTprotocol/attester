@@ -1,39 +1,39 @@
-import { useCallback, useEffect } from "react";
-import { Avatar, Button, Card, CardActions } from "@mui/material";
-import LockIcon from "@mui/icons-material/Lock";
+import { useCallback, useEffect } from "react"
+import { Avatar, Button, Card, CardActions } from "@mui/material"
+import LockIcon from "@mui/icons-material/Lock"
 
-import Box from "@mui/material/Box";
-import authProvider from "../authProvider";
+import Box from "@mui/material/Box"
+import authProvider from "../api/authProvider"
 
 const Login = () => {
   const handleSubmit = useCallback((clientId: string) => {
     const nonce =
       Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15);
+      Math.random().toString(36).substring(2, 15)
     const state =
       Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15);
+      Math.random().toString(36).substring(2, 15)
 
-    let url = new URL(import.meta.env.VITE_AUTH_URL);
-    url.searchParams.append("response_type", "id_token");
-    url.searchParams.append("client_id", clientId as string);
+    const url = new URL(import.meta.env.VITE_AUTH_URL)
+    url.searchParams.append("response_type", "id_token")
+    url.searchParams.append("client_id", clientId as string)
     url.searchParams.append(
       "redirect_uri",
       window.location.origin + "/#/login"
-    );
-    url.searchParams.append("scope", "openid");
-    url.searchParams.append("state", state);
-    url.searchParams.append("nonce", nonce);
-    window.location.href = url.toString();
-  }, []);
+    )
+    url.searchParams.append("scope", "openid")
+    url.searchParams.append("state", state)
+    url.searchParams.append("nonce", nonce)
+    window.location.href = url.toString()
+  }, [])
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.slice(8));
-    const token = params.get("id_token");
+    const params = new URLSearchParams(window.location.hash.slice(8))
+    const token = params.get("id_token")
     if (token) {
-      authProvider.login(token);
+      authProvider.login(token)
     }
-  }, []);
+  }, [])
 
   return (
     <div
@@ -93,7 +93,7 @@ const Login = () => {
         </CardActions>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login
