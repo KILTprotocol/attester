@@ -5,13 +5,13 @@ export interface AttestationRequest {
   approved: boolean
   revoked: boolean
   claimer: DidUri
-  created_at: string
+  createdAt: string
   credential: ICredential
-  ctype_hash: ICType['$id']
-  deleted_at?: string
+  ctypeHash: ICType['$id']
+  deletedAt?: string
   id: UUID
-  updated_at?: string
-  approved_at?: string
-  revoked_at?: string
-  tx_state: string
+  updatedAt?: string
+  approvedAt?: string
+  revokedAt?: string
+  txState: string
 }

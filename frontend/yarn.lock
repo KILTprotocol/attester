@@ -837,9 +837,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kiltprotocol/kilt-extension-api@npm:0.1.0-alpha.2":
-  version: 0.1.0-alpha.2
-  resolution: "@kiltprotocol/kilt-extension-api@npm:0.1.0-alpha.2"
+"@kiltprotocol/kilt-extension-api@npm:0.1.0-alpha.3":
+  version: 0.1.0-alpha.3
+  resolution: "@kiltprotocol/kilt-extension-api@npm:0.1.0-alpha.3"
   dependencies:
     "@kiltprotocol/sdk-js": "npm:^0.34.0"
     "@kiltprotocol/types": "npm:^0.34.0"
@@ -849,7 +849,7 @@ __metadata:
     yargs: "npm:^17.7.2"
   bin:
     createDidConfig: cli/createDidConfig.js
-  checksum: 8b99ffa83d569f035a55693277947221106ce825e94afc5f22303bf50ac918732669311ebbf3d46aeeecb2121940786748daf0f83456e176b3324d52880762a7
+  checksum: f0e3be55b3d403d3f1382b99919b8725cfd9519a3f6dfc6d460d051302b599f3e6db9b38d2daf1bd32e0382ab7353797d61299b7bcf7a478bc60d148401206bd
   languageName: node
   linkType: hard
 
@@ -2477,7 +2477,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "attester@workspace:."
   dependencies:
-    "@kiltprotocol/kilt-extension-api": "npm:0.1.0-alpha.2"
+    "@kiltprotocol/kilt-extension-api": "npm:0.1.0-alpha.3"
     "@kiltprotocol/sdk-js": "npm:^0.34.0"
     "@types/node": "npm:^18.16.1"
     "@types/react": "npm:^18.0.22"

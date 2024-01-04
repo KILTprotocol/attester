@@ -44,7 +44,7 @@ export const AttestationEdit = () => {
     const record = useRecordContext<AttestationRequest>()
     const onEdit = async (data: InteractionProps) => {
       setIsLoading(true)
-      const ctypeDetails = await fetchCType(record.ctype_hash)
+      const ctypeDetails = await fetchCType(record.ctypeHash)
       try {
         const claim = Claim.fromCTypeAndClaimContents(
           ctypeDetails.cType,

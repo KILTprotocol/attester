@@ -17,11 +17,12 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Tooltip from '@mui/material/Tooltip'
 import DownloadIcon from '@mui/icons-material/Download'
 import { ICType } from '@kiltprotocol/sdk-js'
+import { getExtensions } from '@kiltprotocol/kilt-extension-api'
 
 import { AttestationRequest } from '../utils/types'
 import { useState } from 'react'
 import { getAxiosClient } from '../api/dataProvider'
-import { apiWindow, getSession, useCompatibleExtensions } from '../api/session'
+import { getSession } from '../api/session'
 import { isUserAdmin } from '../utils/utils'
 
 const ExpandAttestation = () => {
@@ -124,15 +125,18 @@ const RevokeButton = () => {
 const DownloadCredential = () => {
   const record = useRecordContext<AttestationRequest>()
   const [isLoading, setIsLoading] = useState(false)
-  const { kilt } = apiWindow
-  const { extensions } = useCompatibleExtensions()
+
+  const extensions = getExtensions()
   const hasExtension = extensions.length > 0
 
   const handleClick = async () => {
     setIsLoading(true)
     const extension = 'sporran'
 
-    const session = await getSession(kilt[extension], record.id)
+    const session = await getSession(
+      extensions.find((val) => val.name === extension),
+      record.id
+    )
 
     setIsLoading(false)
   }
@@ -159,7 +163,7 @@ const DownloadCredential = () => {
 
 const URLField = ({ baseURL }: { source: string; baseURL: string }) => {
   const record = useRecordContext<AttestationRequest>()
-  let ctype = record.ctype_hash
+  let ctype = record.ctypeHash
 
   if (!ctype.startsWith('kilt:ctype:')) {
     ctype = `kilt:ctype:${ctype}` as ICType['$id']

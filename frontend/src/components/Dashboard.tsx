@@ -15,18 +15,18 @@ import CircularProgress from '@mui/material/CircularProgress'
 
 interface AttestationChartData {
   date: string
-  total_attestations_created: number
+  totalAttestationsCreated: number
 }
 
-interface KPIInterface {
-  attestations_created_over_time: AttestationChartData[]
-  attestations_not_approved: number
-  attestations_revoked: number
-  total_claimers: number
+interface KPI {
+  attestationsCreatedOverTime: AttestationChartData[]
+  attestationsNotApproved: number
+  attestationsRevoked: number
+  totalClaimers: number
 }
 
 const Dashboard = () => {
-  const [kpi, setKpi] = useState<KPIInterface>()
+  const [kpi, setKpi] = useState<KPI>()
   const [errorMessage, setErrorMessage] = useState<string>('')
 
   useEffect(() => {
@@ -50,7 +50,7 @@ const Dashboard = () => {
   const transformDate = (data: AttestationChartData[]) =>
     data.map((dataPoint) => ({
       date: new Date(dataPoint.date).toLocaleDateString(),
-      total_attestations_created: dataPoint.total_attestations_created,
+      total_attestations_created: dataPoint.totalAttestationsCreated,
     }))
 
   if (errorMessage !== '') {
@@ -79,7 +79,7 @@ const Dashboard = () => {
           <LineChart
             width={500}
             height={300}
-            data={transformDate(kpi.attestations_created_over_time)}
+            data={transformDate(kpi.attestationsCreatedOverTime)}
             margin={{
               top: 5,
               right: 30,
@@ -121,7 +121,7 @@ const Dashboard = () => {
             sx={{ position: 'absolute', bottom: 0, right: 0, margin: '1em' }}
             variant='subtitle1'
           >
-            {kpi.attestations_not_approved}
+            {kpi.attestationsNotApproved}
           </Typography>
         </Card>
         <Card
@@ -140,7 +140,7 @@ const Dashboard = () => {
             sx={{ position: 'absolute', bottom: 0, right: 0, margin: '1em' }}
             variant='subtitle1'
           >
-            {kpi.attestations_revoked}
+            {kpi.attestationsRevoked}
           </Typography>
         </Card>
         <Card
@@ -157,7 +157,7 @@ const Dashboard = () => {
             sx={{ position: 'absolute', bottom: 0, right: 0, margin: '1em' }}
             variant='subtitle1'
           >
-            {kpi.total_claimers}
+            {kpi.totalClaimers}
           </Typography>
         </Card>
       </div>
