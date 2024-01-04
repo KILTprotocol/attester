@@ -24,7 +24,7 @@ pub mod runtime {}
 pub type RuntimeCall = runtime::runtime_types::spiritnet_runtime::RuntimeCall;
 
 #[cfg(not(feature = "spiritnet"))]
-#[subxt::subxt(runtime_metadata_path = "metadata_peregrine_11110..scale")]
+#[subxt::subxt(runtime_metadata_path = "metadata_peregrine_11110.scale")]
 pub mod runtime {}
 
 #[cfg(not(feature = "spiritnet"))]
