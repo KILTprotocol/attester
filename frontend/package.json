@@ -10,6 +10,7 @@
     "format": "prettier --write ./src"
   },
   "dependencies": {
+    "@kiltprotocol/kilt-extension-api": "0.1.0-alpha.2",
     "@kiltprotocol/sdk-js": "^0.34.0",
     "axios": "^1.5.1",
     "chart.js": "^4.4.0",

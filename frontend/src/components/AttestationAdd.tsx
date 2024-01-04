@@ -1,39 +1,33 @@
-import {
-  Create,
-  SaveButton,
-  SimpleForm,
-  Toolbar,
-  useNotify,
-} from "react-admin"
-import TextField from "@mui/material/TextField"
+import { Create, SaveButton, SimpleForm, Toolbar, useNotify } from 'react-admin'
+import TextField from '@mui/material/TextField'
 import {
   ICType,
   IClaimContents,
   Claim,
   DidUri,
   Credential as KiltCredential,
-} from "@kiltprotocol/sdk-js"
-import { useState } from "react"
-import ReactJson, { InteractionProps } from "react-json-view"
-import { fetchCType } from "../utils/utils"
+} from '@kiltprotocol/sdk-js'
+import { useState } from 'react'
+import ReactJson, { InteractionProps } from 'react-json-view'
+import { fetchCType } from '../utils/utils'
 
 //TODO:fix
 function getDefaultEntryForType({ type }: { type: string }) {
-  if (type === "string") {
-    return ""
+  if (type === 'string') {
+    return ''
   }
-  if (type === "boolean") {
+  if (type === 'boolean') {
     return false
   }
-  if (type === "number" || type === "integer") {
+  if (type === 'number' || type === 'integer') {
     return 0
   }
 }
 
 export const AttestationCreate = () => {
   // states
-  const [ctypeHash, setCtypeHash] = useState<string>("")
-  const [claimer, setClaimer] = useState<string>("")
+  const [ctypeHash, setCtypeHash] = useState<string>('')
+  const [claimer, setClaimer] = useState<string>('')
   const [ctype, setCtypeDetails] = useState<ICType>()
 
   const [claimContent, setClaimContent] = useState<IClaimContents>()
@@ -55,7 +49,7 @@ export const AttestationCreate = () => {
       setClaimContent(claimContent)
     } catch {
       setClaimContent(undefined)
-      notify("CType does not exists")
+      notify('CType does not exists')
     }
   }
 
@@ -77,7 +71,7 @@ export const AttestationCreate = () => {
       return KiltCredential.fromClaim(claim)
     } catch (e) {
       console.error(e)
-      notify("Ctype Verification failed")
+      notify('Ctype Verification failed')
     }
   }
 
@@ -86,28 +80,28 @@ export const AttestationCreate = () => {
     return (
       <Toolbar {...props}>
         <SaveButton
-          alwaysEnable={claimer !== "" && claimContent !== undefined}
-          label="Save"
+          alwaysEnable={claimer !== '' && claimContent !== undefined}
+          label='Save'
         />
       </Toolbar>
     )
   }
 
   return (
-    <Create transform={transformData} redirect="list">
+    <Create transform={transformData} redirect='list'>
       <SimpleForm toolbar={<CustomToolBar />}>
         <TextField
           value={ctypeHash}
-          label="Ctype Hash"
-          variant="outlined"
+          label='Ctype Hash'
+          variant='outlined'
           fullWidth
           onChange={(e) => handleSelectedCtype(e.target.value)}
           required
         />
         <TextField
           value={claimer}
-          label="Claimer"
-          variant="outlined"
+          label='Claimer'
+          variant='outlined'
           fullWidth
           onChange={(e) => setClaimer(e.target.value)}
           required
@@ -116,8 +110,8 @@ export const AttestationCreate = () => {
           <ReactJson
             src={claimContent}
             onEdit={onEdit}
-            name="Claim"
-            validationMessage="Claim Verification failed"
+            name='Claim'
+            validationMessage='Claim Verification failed'
           />
         )}
       </SimpleForm>
