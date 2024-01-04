@@ -275,3 +275,22 @@ pub async fn update_session(
     .fetch_one(pool)
     .await
 }
+
+pub async fn mark_attestation_approve(
+    pool: &PgPool,
+    attestation_request_id: &Uuid,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "UPDATE attestation_requests SET approved_at = NOW() WHERE id = $1",
+        attestation_request_id
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn remove_session(pool: &PgPool, id: &Uuid) -> Result<PgQueryResult, sqlx::Error> {
+    sqlx::query!("DELETE FROM session_request WHERE id = $1", id)
+        .execute(pool)
+        .await
+}

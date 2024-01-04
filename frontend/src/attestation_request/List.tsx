@@ -16,10 +16,11 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import CircularProgress from "@mui/material/CircularProgress";
 import Tooltip from "@mui/material/Tooltip";
 import DownloadIcon from "@mui/icons-material/Download";
+import BookmarkAddedIcon from '@mui/icons-material/BookmarkAdded';
 import { ICType } from "@kiltprotocol/sdk-js";
 
 import { AttestationRequest } from "../types";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { getAxiosClient } from "../dataProvider";
 import {
   apiWindow,
@@ -51,7 +52,7 @@ const RevokeApproveButton = () => {
   const notify = useNotify();
   const refresh = useRefresh();
 
-  const handleClick = async (url: string) => {
+  const handleClick = useCallback(async (url: string) => {
     if (isLoading) {
       return;
     }
@@ -65,29 +66,49 @@ const RevokeApproveButton = () => {
       notify("Transaction is finished!");
     }, 60_000);
     notify("Transaction is fired.");
-  };
+  }, []);
 
   return (
     <>
-      {!record.approved ? (
-        <Tooltip title="Approve">
-          <span>
-            <Fab
-              color="primary"
-              aria-label="add"
-              size="small"
-              disabled={record.approved || isLoading}
-              onClick={() =>
-                handleClick(
-                  apiURL + "/attestation_request/" + record.id + "/approve"
-                )
-              }
-              sx={{ marginLeft: "1em", marginRight: "1em" }}
-            >
-              {isLoading ? <CircularProgress color="error" /> : <DoneIcon />}
-            </Fab>
-          </span>
-        </Tooltip>
+      {!record.approved || !record.approved_at ? (
+        <>
+          <Tooltip title="Approve">
+            <span>
+              <Fab
+                color="primary"
+                aria-label="add"
+                size="small"
+                disabled={record.approved || isLoading}
+                onClick={() =>
+                  handleClick(
+                    apiURL + "/attestation_request/" + record.id + "/approve"
+                  )
+                }
+                sx={{ marginRight: "1em" }}
+              >
+                {isLoading ? <CircularProgress color="error" /> : <DoneIcon />}
+              </Fab>
+            </span>
+          </Tooltip>
+          <Tooltip title="Mark Approve">
+            <span>
+              <Fab
+                color="inherit"
+                aria-label="add"
+                size="small"
+                disabled={record.approved || isLoading}
+                onClick={() =>
+                  handleClick(
+                    apiURL + "/attestation_request/" + record.id + "/mark_approve"
+                  )
+                }
+                sx={{ marginLeft: "1em", }}
+              >
+                {isLoading ? <CircularProgress color="error" /> : <BookmarkAddedIcon />}
+              </Fab>
+            </span>
+          </Tooltip>
+        </>
       ) : (
         <Tooltip title="Revoke">
           <span>
@@ -101,13 +122,14 @@ const RevokeApproveButton = () => {
                   apiURL + "/attestation_request/" + record.id + "/revoke"
                 )
               }
-              sx={{ marginLeft: "1em", marginRight: "1em" }}
+              sx={{ marginRight: "1em" }}
             >
               {isLoading ? <CircularProgress /> : <RemoveIcon />}
             </Fab>
           </span>
         </Tooltip>
-      )}
+      )
+      }
     </>
   );
 };
@@ -120,7 +142,7 @@ const DownloadCredential = () => {
   const { extensions } = useCompatibleExtensions();
   const hasExtension = extensions.length > 0;
 
-  const handleClick = async () => {
+  const handleClick = useCallback(async () => {
     setIsLoading(true);
     const extension = "sporran";
 
@@ -132,7 +154,7 @@ const DownloadCredential = () => {
     }
     notify("Credential is downloaded into wallet");
     setIsLoading(false);
-  };
+  }, [kilt]);
 
   return (
     <>
@@ -142,7 +164,7 @@ const DownloadCredential = () => {
             color="success"
             aria-label="download"
             size="small"
-            disabled={!record.approved}
+            disabled={!record.approved_at}
             onClick={handleClick}
             sx={{ marginLeft: "1em", marginRight: "1em" }}
           >

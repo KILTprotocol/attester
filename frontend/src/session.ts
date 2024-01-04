@@ -122,30 +122,12 @@ export async function requestAttestation(
   );
 
   let attestation_message = await client.post(
-    credentialUrl,
+    credentialUrl + "/" + session_reference + "/" + attestationId,
     getCredentialRequestFromExtension
   );
 
   if (attestation_message.status !== 200) {
     throw new Error("No valid attestation message");
   }
-
-  const getApprovalFromExtension = await new Promise(
-    async (resolve, reject) => {
-      try {
-        await session.listen(async (approval) => {
-          resolve(approval);
-        });
-        await session.send(attestation_message.data);
-      } catch (e) {
-        reject(e);
-      }
-    }
-  );
-
-  let bla = getApprovalFromExtension;
-
-  console.log(bla)
-
 
 }

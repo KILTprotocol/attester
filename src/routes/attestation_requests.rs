@@ -15,8 +15,9 @@ use crate::{
             approve_attestation_request, attestation_requests_kpis, can_approve_attestation_tx,
             can_revoke_attestation, delete_attestation_request, get_attestation_request_by_id,
             get_attestation_requests, get_attestations_count, insert_attestation_request,
-            mark_attestation_request_in_flight, record_attestation_request_failed,
-            revoke_attestation_request, update_attestation_request,
+            mark_attestation_approve, mark_attestation_request_in_flight,
+            record_attestation_request_failed, revoke_attestation_request,
+            update_attestation_request,
         },
     },
     error::AppError,
@@ -172,6 +173,24 @@ async fn approve_attestation(
     Ok(HttpResponse::Ok().json("ok"))
 }
 
+#[put("/{attestation_request_id}/mark_approve")]
+async fn mark_approve_attestation_request(
+    attestation_id: web::Path<Uuid>,
+    user: ReqData<User>,
+    state: web::Data<AppState>,
+) -> Result<HttpResponse, AppError> {
+    // check role
+    if !is_user_admin(&user) {
+        Err(actix_web::error::ErrorUnauthorized(
+            "User is not allowed to see data",
+        ))?
+    }
+
+    mark_attestation_approve(&state.db_executor, &attestation_id).await?;
+
+    Ok(HttpResponse::Ok().json("ok"))
+}
+
 #[put("/{attestation_request_id}/revoke")]
 async fn revoke_attestation(
     attestation_id: web::Path<Uuid>,
@@ -286,4 +305,5 @@ pub fn get_attestation_request_scope() -> Scope {
         .service(update_attestation)
         .service(revoke_attestation)
         .service(get_attestation_kpis)
+        .service(mark_approve_attestation_request)
 }
