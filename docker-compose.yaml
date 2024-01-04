@@ -13,7 +13,8 @@ services:
       - "5432:5432"
 
   backend:
-    image: test
+    image: kiltprotocol/attester:latest
+    build: .
     container_name: my_backend
     environment:
       ATTESTER_DID_SEED: "analyst bomb away undo globe believe quiz aisle shrug mail parade emerge"
