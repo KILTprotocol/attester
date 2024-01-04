@@ -7,7 +7,7 @@ COPY frontend ./
 
 RUN yarn build
 
-FROM rust:slim-buster as backend-build
+FROM rust:buster as backend-build
 
 RUN apt-get update && \
     apt-get -y upgrade && \
@@ -25,7 +25,7 @@ COPY --from=backend-build /app/target/release/attester-backend /app/attester-bac
 
 EXPOSE 7777
 
-CMD [ "sqlx migrate run && ./app/attester-backend" ]
+CMD [ "sh", "-c", "sqlx migrate run && ./app/attester-backend" ]
 
 
 

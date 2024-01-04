@@ -1,17 +1,17 @@
-import { AppBar, TitlePortal } from "react-admin";
-import { Box, useMediaQuery, Theme } from "@mui/material";
+import { AppBar, TitlePortal } from 'react-admin'
+import { Box, useMediaQuery, Theme } from '@mui/material'
 
 const CustomAppBar = () => {
   const isLargeEnough = useMediaQuery<Theme>((theme) =>
-    theme.breakpoints.up("sm")
-  );
+    theme.breakpoints.up('sm')
+  )
   return (
-    <AppBar color="secondary" elevation={1}>
+    <AppBar color='secondary' elevation={1}>
       <TitlePortal />
 
-      {isLargeEnough && <Box component="span" sx={{ flex: 1 }} />}
+      {isLargeEnough && <Box component='span' sx={{ flex: 1 }} />}
     </AppBar>
-  );
-};
+  )
+}
 
-export default CustomAppBar;
+export default CustomAppBar

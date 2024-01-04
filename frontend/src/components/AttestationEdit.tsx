@@ -9,60 +9,60 @@ import {
   Toolbar,
   useNotify,
   useRecordContext,
-} from "react-admin";
-import ReactJson, { InteractionProps } from "react-json-view";
-import Typography from "@mui/material/Typography";
+} from 'react-admin'
+import ReactJson, { InteractionProps } from 'react-json-view'
+import Typography from '@mui/material/Typography'
 import {
   Claim,
   IClaim,
   IClaimContents,
   Credential as KiltCredentials,
-} from "@kiltprotocol/sdk-js";
-import { useState } from "react";
-import { fetchCType } from "../utils";
-import { AttestationRequst } from "../types";
+} from '@kiltprotocol/sdk-js'
+import { useState } from 'react'
+import { fetchCType } from '../utils/utils'
+import { AttestationRequest } from '../utils/types'
 
 export const AttestationEdit = () => {
   //states
-  const [updatedClaim, setUpdatedClaim] = useState<IClaim>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [updatedClaim, setUpdatedClaim] = useState<IClaim>()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   // hooks
-  const notify = useNotify();
+  const notify = useNotify()
 
   // callbacks
   const transformData = (previous_data: RaRecord<Identifier>) => {
     const updatedCredential = updatedClaim
       ? KiltCredentials.fromClaim(updatedClaim)
-      : previous_data.credential;
+      : previous_data.credential
 
-    return updatedCredential;
-  };
+    return updatedCredential
+  }
 
   // elements
   const EditClaim = () => {
-    const record = useRecordContext<AttestationRequst>();
+    const record = useRecordContext<AttestationRequest>()
     const onEdit = async (data: InteractionProps) => {
-      setIsLoading(true);
-      let ctypeDetails = await fetchCType(record.ctype_hash);
+      setIsLoading(true)
+      const ctypeDetails = await fetchCType(record.ctypeHash)
       try {
         const claim = Claim.fromCTypeAndClaimContents(
           ctypeDetails.cType,
           data.updated_src as IClaimContents,
           record.claimer
-        );
-        setUpdatedClaim(claim);
-        notify("Json Updated");
+        )
+        setUpdatedClaim(claim)
+        notify('Json Updated')
       } catch (e) {
-        notify("Json Verification failed", { type: "error" });
-        return false;
+        notify('Json Verification failed', { type: 'error' })
+        return false
       }
-      setIsLoading(false);
-    };
+      setIsLoading(false)
+    }
 
     return (
       <div>
-        <Typography variant="inherit">Claim Content</Typography>
+        <Typography variant='inherit'>Claim Content</Typography>
         <ReactJson
           src={
             updatedClaim !== undefined
@@ -70,42 +70,42 @@ export const AttestationEdit = () => {
               : record.credential.claim.contents
           }
           onEdit={!record.approved ? onEdit : false}
-          name="Claim"
-          validationMessage="Claim Verification failed"
+          name='Claim'
+          validationMessage='Claim Verification failed'
         />
       </div>
-    );
-  };
+    )
+  }
 
   const CustomToolBar = (props: any) => {
-    const record = useRecordContext<AttestationRequst>();
+    const record = useRecordContext<AttestationRequest>()
 
     return (
       <Toolbar {...props}>
         <SaveButton
           {...props}
-          label="Save"
+          label='Save'
           disabled={isLoading || record.approved}
         />
       </Toolbar>
-    );
-  };
+    )
+  }
 
   return (
     <Edit transform={transformData}>
       <SimpleForm toolbar={<CustomToolBar />}>
         <TextInput
-          variant="outlined"
+          variant='outlined'
           disabled
-          label="Id"
-          source="id"
+          label='Id'
+          source='id'
           fullWidth
         />
-        <TextInput variant="outlined" disabled source="claimer" fullWidth />
-        <DateInput variant="outlined" disabled source="created_at" fullWidth />
-        <TextInput variant="outlined" disabled source="ctype_hash" fullWidth />
+        <TextInput variant='outlined' disabled source='claimer' fullWidth />
+        <DateInput variant='outlined' disabled source='created_at' fullWidth />
+        <TextInput variant='outlined' disabled source='ctype_hash' fullWidth />
         <EditClaim />
       </SimpleForm>
     </Edit>
-  );
-};
+  )
+}
