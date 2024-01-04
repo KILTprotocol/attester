@@ -7,7 +7,7 @@ COPY frontend ./
 
 RUN yarn build
 
-FROM rust:slim-buster as backend-build
+FROM rust:buster as backend-build
 
 RUN apt-get update && \
     apt-get -y upgrade && \
