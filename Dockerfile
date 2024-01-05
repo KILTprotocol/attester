@@ -1,7 +1,7 @@
 FROM node:20.5.1 as frontend-build
 
 WORKDIR /usr/src/app
-COPY ./frontend/yarn.lock ./frontend/package.json ./frontend/.yarnrc.yml ./frontend/.yarn ./
+COPY ./frontend/yarn.lock ./frontend/package.json ./frontend/.yarnrc.yml ./frontend/.yarn ./frontend/.env ./
 RUN corepack enable && yarn set version stable && yarn install
 COPY frontend ./
 

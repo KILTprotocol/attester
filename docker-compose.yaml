@@ -33,5 +33,13 @@ services:
     ports:
       - '7777:7777' # Adjust the port as needed
 
+  opendid:
+    image: docker.io/kiltprotocol/opendid:latest
+    container_name: opendid
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    ports:
+      - '3001:3001' # Adjust the port as needed
+
 volumes:
   postgres_data:
