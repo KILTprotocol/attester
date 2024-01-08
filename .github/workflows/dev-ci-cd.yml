@@ -3,8 +3,7 @@ on:
     types: [ created ]
   push:
     branches:
-      - ci-cd
-    
+      - main   
 
 name: Dev deployment
 
@@ -54,3 +53,4 @@ jobs:
 
       with:
         args: rollout restart deployment dena-attester -n dena-attester-dev
+        
