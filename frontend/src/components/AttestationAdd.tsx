@@ -1,45 +1,39 @@
-import {
-  Create,
-  SaveButton,
-  SimpleForm,
-  Toolbar,
-  useNotify,
-} from "react-admin";
-import TextField from "@mui/material/TextField";
+import { Create, SaveButton, SimpleForm, Toolbar, useNotify } from 'react-admin'
+import TextField from '@mui/material/TextField'
 import {
   ICType,
   IClaimContents,
   Claim,
   DidUri,
   Credential as KiltCredential,
-} from "@kiltprotocol/sdk-js";
-import { useState } from "react";
-import ReactJson, { InteractionProps } from "react-json-view";
-import { fetchCType } from "../utils";
+} from '@kiltprotocol/sdk-js'
+import { useState } from 'react'
+import ReactJson, { InteractionProps } from 'react-json-view'
+import { fetchCType } from '../utils/utils'
 
 //TODO:fix
 function getDefaultEntryForType({ type }: { type: string }) {
-  if (type === "string") {
-    return "";
+  if (type === 'string') {
+    return ''
   }
-  if (type === "boolean") {
-    return false;
+  if (type === 'boolean') {
+    return false
   }
-  if (type === "number" || type === "integer") {
-    return 0;
+  if (type === 'number' || type === 'integer') {
+    return 0
   }
 }
 
 export const AttestationCreate = () => {
   // states
-  const [ctypeHash, setCtypeHash] = useState<String>("");
-  const [claimer, setClaimer] = useState<String>("");
-  const [ctype, setCtypeDetails] = useState<ICType>();
+  const [ctypeHash, setCtypeHash] = useState<string>('')
+  const [claimer, setClaimer] = useState<string>('')
+  const [ctype, setCtypeDetails] = useState<ICType>()
 
-  const [claimContent, setClaimContent] = useState<IClaimContents>();
+  const [claimContent, setClaimContent] = useState<IClaimContents>()
 
   // hooks
-  const notify = useNotify();
+  const notify = useNotify()
 
   //callbacks
   const handleSelectedCtype = async (ctype: string) => {
@@ -51,22 +45,22 @@ export const AttestationCreate = () => {
       Object.entries(ctypeDetails.cType.properties).map(
         ([key, type]) =>
           (claimContent[key] = getDefaultEntryForType(type as any))
-      );
-      setCtypeDetails(ctypeDetails.cType);
-      setClaimContent(claimContent);
+      )
+      setCtypeDetails(ctypeDetails.cType)
+      setClaimContent(claimContent)
     } catch {
       setClaimContent(undefined);
       notify("CType does not exists", { type: "error" });
     }
-  };
+  }
 
   const onEdit = (data: InteractionProps) => {
-    setClaimContent(data.updated_src as IClaimContents);
-  };
+    setClaimContent(data.updated_src as IClaimContents)
+  }
 
   const transformData = () => {
     if (!ctype || !claimContent) {
-      return undefined;
+      return undefined
     }
 
     try {
@@ -80,35 +74,35 @@ export const AttestationCreate = () => {
       console.error(e);
       notify("Ctype Verification failed");
     }
-  };
+  }
 
   //Elements
   const CustomToolBar = (props: any) => {
     return (
       <Toolbar {...props}>
         <SaveButton
-          alwaysEnable={claimer !== "" && claimContent !== undefined}
-          label="Save"
+          alwaysEnable={claimer !== '' && claimContent !== undefined}
+          label='Save'
         />
       </Toolbar>
-    );
-  };
+    )
+  }
 
   return (
-    <Create transform={transformData} redirect="list">
+    <Create transform={transformData} redirect='list'>
       <SimpleForm toolbar={<CustomToolBar />}>
         <TextField
           value={ctypeHash}
-          label="Ctype Hash"
-          variant="outlined"
+          label='Ctype Hash'
+          variant='outlined'
           fullWidth
           onChange={(e) => handleSelectedCtype(e.target.value)}
           required
         />
         <TextField
           value={claimer}
-          label="Claimer"
-          variant="outlined"
+          label='Claimer'
+          variant='outlined'
           fullWidth
           onChange={(e) => setClaimer(e.target.value)}
           required
@@ -117,11 +111,11 @@ export const AttestationCreate = () => {
           <ReactJson
             src={claimContent}
             onEdit={onEdit}
-            name="Claim"
-            validationMessage="Claim Verification failed"
+            name='Claim'
+            validationMessage='Claim Verification failed'
           />
         )}
       </SimpleForm>
     </Create>
-  );
-};
+  )
+}

@@ -10,7 +10,9 @@
     "format": "prettier --write ./src"
   },
   "dependencies": {
+    "@kiltprotocol/kilt-extension-api": "0.1.0-alpha.3",
     "@kiltprotocol/sdk-js": "^0.34.0",
+    "@rollup/rollup-linux-x64-gnu": "^4.9.2",
     "axios": "^1.5.1",
     "chart.js": "^4.4.0",
     "jwt-decode": "^3.1.2",
@@ -24,10 +26,10 @@
     "ts-pattern": "^5.0.5"
   },
   "devDependencies": {
-    "@types/recharts": "^1.8.26",
     "@types/node": "^18.16.1",
     "@types/react": "^18.0.22",
     "@types/react-dom": "^18.0.7",
+    "@types/recharts": "^1.8.26",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "@typescript-eslint/parser": "^5.60.1",
     "@vitejs/plugin-react": "^4.0.1",
@@ -36,7 +38,11 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "prettier": "^2.8.8",
-    "typescript": "^5.1.6",
-    "vite": "^4.3.9"
+    "typescript": "5.1.6",
+    "vite": "^5.0.10"
+  },
+  "packageManager": "yarn@4.0.0",
+  "resolutions": {
+    "rollup": "npm:@rollup/wasm-node@*"
   }
 }

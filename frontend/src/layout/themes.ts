@@ -1,4 +1,4 @@
-import { defaultTheme } from "react-admin";
+import { defaultTheme } from "react-admin"
 
 export const darkTheme = {
   palette: {
@@ -8,7 +8,7 @@ export const darkTheme = {
     secondary: {
       main: "#FBBA72",
     },
-    mode: "dark" as "dark", // Switching the dark mode on is a single property value change.
+    mode: "dark" as const, // Switching the dark mode on is a single property value change.
   },
   sidebar: {
     width: 200,
@@ -34,7 +34,7 @@ export const darkTheme = {
       },
     },
   },
-};
+}
 
 export const lightTheme = {
   palette: {
@@ -50,7 +50,7 @@ export const lightTheme = {
     background: {
       default: "#fcfcfe",
     },
-    mode: "light" as "light",
+    mode: "light" as const,
   },
   shape: {
     borderRadius: 10,
@@ -107,4 +107,4 @@ export const lightTheme = {
       },
     },
   },
-};
+}
