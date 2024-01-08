@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - ci-cd
-      - main
     
 
 name: Dev deployment
@@ -13,7 +12,7 @@ jobs:
   deploy:
     name: Build image and push to Amazon ECR
     runs-on: ubuntu-latest
-    environment: production
+    environment: dev
 
     steps:
     - name: Checkout
