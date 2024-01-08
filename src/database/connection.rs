@@ -1,26 +1,28 @@
+use anyhow::Context;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
-pub async fn init(database_url: &str) -> Pool<Postgres> {
+pub async fn init(database_url: &str) -> anyhow::Result<Pool<Postgres>> {
     let pool = connect(database_url)
         .await
-        .expect("Connection to database should not fail");
+        .context("Connection to database should not fail")?;
 
     log::info!("Connection to database established");
 
     sqlx::migrate!()
         .run(&pool)
         .await
-        .expect("Migration should not fail");
+        .context("Migration should not fail")?;
 
     log::info!("Database migration succeded");
 
-    return pool;
+    Ok(pool)
 }
 
-pub async fn connect(database_url: &str) -> Result<Pool<Postgres>, sqlx::Error> {
+pub async fn connect(database_url: &str) -> anyhow::Result<Pool<Postgres>> {
     let pool = PgPoolOptions::new()
         .max_connections(20)
         .connect(database_url)
-        .await?;
+        .await
+        .context("Creating database connection failed")?;
     Ok(pool)
 }

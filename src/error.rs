@@ -17,14 +17,19 @@ pub enum AppError {
     Json(#[from] serde_json::Error),
     #[error("Hex error: {0}")]
     Hex(#[from] hex::FromHexError),
+    #[error("Challenge error: {0}")]
+    Challenge(String),
+    #[error("Light DID error: {0}")]
+    LightDid(String),
+    #[error("DID error: {0}")]
+    Did(&'static str),
+    #[error("Attestation error: {0}")]
+    Attestation(&'static str),
 }
-
-// Is thread safe. No data races or similar can happen.
-unsafe impl Send for AppError {}
-unsafe impl Sync for AppError {}
 
 impl actix_web::error::ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {
+        log::error!("{}", self.to_string());
         HttpResponse::build(self.status_code()).body(self.to_string())
     }
 

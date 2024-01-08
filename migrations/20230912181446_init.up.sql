@@ -1,32 +1,34 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
- 
-CREATE TYPE tx_states AS ENUM ('Succeeded', 'Failed', 'Pending', 'InFlight' ); 
+
+CREATE TYPE tx_states AS ENUM ('Succeeded', 'Failed', 'Pending', 'InFlight');
 
 CREATE TABLE IF NOT EXISTS attestation_requests (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4()  NOT NULL,
-    approved BOOLEAN DEFAULT false  NOT NULL,
-    created_at TIMESTAMP DEFAULT now()  NOT NULL,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
+    approved BOOLEAN DEFAULT false NOT NULL,
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
     deleted_at TIMESTAMP,
     updated_at TIMESTAMP,
     approved_at TIMESTAMP,
     revoked_at TIMESTAMP,
-    ctype_hash VARCHAR(255)  NOT NULL,
-    credential jsonb  NOT NULL,
-    claimer VARCHAR(255)  NOT NULL,
+    ctype_hash VARCHAR(255) NOT NULL,
+    credential jsonb NOT NULL,
+    claimer VARCHAR(255) NOT NULL,
     revoked BOOLEAN DEFAULT false NOT NULL,
-    tx_state tx_states DEFAULT 'Pending'
+    tx_state tx_states DEFAULT 'Pending',
+    marked_approve BOOLEAN DEFAULT false NOT Null
 );
 
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = NOW();
+    IF NEW.credential IS DISTINCT FROM OLD.credential THEN
+        NEW.updated_at = NOW();
+    END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Create the trigger only if it doesn't already exist
-DO $$ 
+DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE event_object_table = 'attestation_requests' AND trigger_name = 'update') THEN
         CREATE TRIGGER update
@@ -35,3 +37,8 @@ BEGIN
         EXECUTE FUNCTION update_updated_at();
     END IF;
 END $$;
+
+CREATE TABLE IF NOT EXISTS session_request (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
+    encryption_key_uri VARCHAR(500)
+);

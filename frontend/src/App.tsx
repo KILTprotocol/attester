@@ -1,15 +1,12 @@
-import { Admin, Resource } from "react-admin";
+import { Admin, Resource } from 'react-admin'
 
-import { Layout, Login } from "./layout";
-import { darkTheme, lightTheme } from "./layout/themes";
-import { dataProvider } from "./dataProvider";
-import { authProvider } from "./authProvider";
-import { Dashboard } from "./Dashboard";
-import {
-  AttestationEdit,
-  AttestationList,
-  AttestationCreate
-} from "./attestation_request";
+import { Layout, Login } from './layout'
+import { darkTheme, lightTheme } from './layout/themes'
+import { dataProvider } from './api/dataProvider'
+import { authProvider } from './api/authProvider'
+import Dashboard from './components/Dashboard'
+import { AttestationCreate } from './components/AttestationAdd'
+import { AttestationList } from './components/AttestationList'
 
 export const App = () => (
   <Admin
@@ -19,14 +16,13 @@ export const App = () => (
     layout={Layout}
     theme={lightTheme}
     darkTheme={darkTheme}
-    defaultTheme="light"
+    defaultTheme='light'
     dashboard={Dashboard}
   >
     <Resource
-      name="attestation_request"
+      name='attestation_request'
       list={AttestationList}
-      edit={AttestationEdit}
       create={AttestationCreate}
     />
   </Admin>
-);
+)
