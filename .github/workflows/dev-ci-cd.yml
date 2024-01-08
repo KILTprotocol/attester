@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - ci-cd
+      - main
+    
 
 name: Dev deployment
 
