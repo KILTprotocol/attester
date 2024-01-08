@@ -13,12 +13,11 @@ ENV VITE_SIMPLE_REST_URL=${backend_url} \
 
 WORKDIR /usr/src/app
 
-COPY ./frontend/yarn.lock ./frontend/package.json ./
+# Copy only package.json and yarn.lock first to leverage Docker cache
+COPY ./frontend ./
 
 # Install dependencies
 RUN corepack enable && yarn set version stable && yarn
-
-COPY frontend ./
 
 # Build frontend
 RUN yarn build
@@ -60,4 +59,3 @@ EXPOSE ${port}
 
 # Run migrations and start the application
 CMD ["sh", "-c", "sqlx migrate run && /app/attester-backend /app/config.yaml"]
-
