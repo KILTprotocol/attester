@@ -1,9 +1,9 @@
-import Box from "@mui/material/Box";
-import AppsIcon from "@mui/icons-material/Apps";
-import { DashboardMenuItem, useSidebarState, MenuItemLink } from "react-admin";
+import Box from "@mui/material/Box"
+import AppsIcon from "@mui/icons-material/Apps"
+import { DashboardMenuItem, useSidebarState, MenuItemLink } from "react-admin"
 
 const Menu = () => {
-  const [open] = useSidebarState();
+  const [open] = useSidebarState()
 
   return (
     <Box
@@ -14,8 +14,8 @@ const Menu = () => {
         transition: (theme) =>
           theme.transitions.create("width", {
             easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen
-          })
+            duration: theme.transitions.duration.leavingScreen,
+          }),
       }}
     >
       <DashboardMenuItem />
@@ -26,7 +26,7 @@ const Menu = () => {
         leftIcon={<AppsIcon />}
       />
     </Box>
-  );
-};
+  )
+}
 
-export default Menu;
+export default Menu

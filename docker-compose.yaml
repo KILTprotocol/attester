@@ -10,35 +10,36 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - '5432:5432'
 
   backend:
-    image: test
+    image: kiltprotocol/attester:latest
+    build: .
     container_name: my_backend
     environment:
-      ATTESTER_DID_SEED: "analyst bomb away undo globe believe quiz aisle shrug mail parade emerge"
-      ATTESTER_ATTESTATION_SEED: "analyst bomb away undo globe believe quiz aisle shrug mail parade emerge"
-      PAYER_SEED: "vibrant supreme service cat pig middle crazy notice prison head flip eye"
-      HOST_NAME: "0.0.0.0"
-      WSS_ADDRESS: "wss://peregrine.kilt.io:443/parachain-public-ws"
-      DATABASE_URL: "postgres://dena:secrect@db:5432/attester" # Updated database URL
-      RUST_LOG: "info,debug,error,warn"
-      JWT_SECRET: "super-secret-jwt-secret"
-      FRONT_END_PATH: "/usr/share/html"
+      ATTESTER_DID_SEED: 'pave pattern upon invest humble squirrel cram flight wood travel already hint//did//0'
+      ATTESTER_ATTESTATION_SEED: 'pave pattern upon invest humble squirrel cram flight wood travel already hint//did//assertion//0'
+      PAYER_SEED: 'pave pattern upon invest humble squirrel cram flight wood travel already hint'
+      HOST_NAME: '0.0.0.0'
+      WSS_ADDRESS: 'wss://peregrine.kilt.io:443/parachain-public-ws'
+      DATABASE_URL: 'postgres://dena:secrect@db:5432/attester' # Updated database URL
+      RUST_LOG: 'info,debug,error,warn'
+      JWT_SECRET: 'super-secret-jwt-secret'
+      FRONT_END_PATH: '/usr/share/html'
       PORT: 7777
 
     depends_on:
       - db
     ports:
-      - "7777:7777" # Adjust the port as needed
-    networks:
-      - backend_network # Create a custom network to connect backend and database
+      - '7777:7777' # Adjust the port as needed
+
+  opendid:
+    image: docker.io/kiltprotocol/opendid:latest
+    container_name: opendid
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    ports:
+      - '3001:3001' # Adjust the port as needed
 
 volumes:
   postgres_data:
-
-
-networks:
-  backend_network:
-
-
