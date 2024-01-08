@@ -37,10 +37,11 @@ export const AttestationCreate = () => {
 
   //callbacks
   const handleSelectedCtype = async (ctype: string) => {
-    setCtypeHash(ctype)
+    const fmtCtype = ctype.trim()
+    setCtypeHash(fmtCtype);
     try {
-      const ctypeDetails = await fetchCType(ctype as any)
-      const claimContent: any = {}
+      const ctypeDetails = await fetchCType(fmtCtype as any);
+      const claimContent: any = {};
       Object.entries(ctypeDetails.cType.properties).map(
         ([key, type]) =>
           (claimContent[key] = getDefaultEntryForType(type as any))
@@ -48,13 +49,25 @@ export const AttestationCreate = () => {
       setCtypeDetails(ctypeDetails.cType)
       setClaimContent(claimContent)
     } catch {
-      setClaimContent(undefined)
-      notify('CType does not exists')
+      setClaimContent(undefined);
+      notify("CType does not exists", { type: "error" });
     }
   }
 
   const onEdit = (data: InteractionProps) => {
-    setClaimContent(data.updated_src as IClaimContents)
+
+    const { existing_value, name, updated_src, new_value } = data;
+
+    let fmtSrc;
+
+    if (Number.isInteger(existing_value) && new_value && name) {
+      fmtSrc = {
+        ...updated_src,
+        [name]: + new_value,
+      }
+    }
+
+    setClaimContent(fmtSrc ? fmtSrc : data.updated_src as IClaimContents)
   }
 
   const transformData = () => {
@@ -67,11 +80,11 @@ export const AttestationCreate = () => {
         ctype,
         claimContent,
         claimer as DidUri
-      )
-      return KiltCredential.fromClaim(claim)
+      );
+      return KiltCredential.fromClaim(claim);
     } catch (e) {
-      console.error(e)
-      notify('Ctype Verification failed')
+      console.error(e);
+      notify("Ctype Verification failed");
     }
   }
 

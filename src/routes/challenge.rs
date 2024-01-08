@@ -44,7 +44,7 @@ async fn challenge_response_handler(
     let session_id = Uuid::from_slice(&decrypted_challenge)
         .map_err(|_| AppError::Challenge("Challenge has a wrong format".to_string()))?;
 
-    update_session(&state.db_executor, session_id, encryption_key_uri).await?;
+    update_session(&state.db_executor, &session_id, encryption_key_uri).await?;
 
     Ok(HttpResponse::Ok().json(session_id))
 }

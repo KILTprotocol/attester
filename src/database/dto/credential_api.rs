@@ -79,20 +79,3 @@ pub struct Session {
     #[serde(alias = "challenge")]
     pub id: Uuid,
 }
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RequestTerms {
-    pub challenge: Uuid,
-    pub attestation_id: Uuid,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SubmitAttestationMessageBody {
-    pub claim_hash: String,
-    pub c_type_hash: String,
-    pub owner: String,
-    pub delegation_id: Option<String>,
-    pub revoke: bool,
-}

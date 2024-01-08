@@ -6,7 +6,6 @@ import { dataProvider } from './api/dataProvider'
 import { authProvider } from './api/authProvider'
 import Dashboard from './components/Dashboard'
 import { AttestationCreate } from './components/AttestationAdd'
-import { AttestationEdit } from './components/AttestationEdit'
 import { AttestationList } from './components/AttestationList'
 
 export const App = () => (
@@ -21,9 +20,8 @@ export const App = () => (
     dashboard={Dashboard}
   >
     <Resource
-      name='attestationRequest'
+      name='attestation_request'
       list={AttestationList}
-      edit={AttestationEdit}
       create={AttestationCreate}
     />
   </Admin>

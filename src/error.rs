@@ -23,6 +23,8 @@ pub enum AppError {
     LightDid(String),
     #[error("DID error: {0}")]
     Did(&'static str),
+    #[error("Attestation error: {0}")]
+    Attestation(&'static str),
 }
 
 impl actix_web::error::ResponseError for AppError {

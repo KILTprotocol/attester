@@ -37,6 +37,7 @@ pub struct AttestationResponse {
     pub id: Uuid,
     pub approved: bool,
     pub revoked: bool,
+    pub marked_approve: bool,
     pub created_at: NaiveDateTime,
     pub deleted_at: Option<NaiveDateTime>,
     pub updated_at: Option<NaiveDateTime>,
@@ -49,12 +50,14 @@ pub struct AttestationResponse {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AttestationCreatedOverTime {
     pub date: Option<NaiveDateTime>,
     pub total_attestations_created: Option<i64>,
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AttestationKPIs {
     pub attestations_created_over_time: Vec<AttestationCreatedOverTime>,
     pub attestations_not_approved: i64,

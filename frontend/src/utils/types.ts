@@ -4,14 +4,15 @@ import { UUID } from 'crypto'
 export interface AttestationRequest {
   approved: boolean
   revoked: boolean
+  marked_approve: boolean,
   claimer: DidUri
   createdAt: string
   credential: ICredential
-  ctypeHash: ICType['$id']
-  deletedAt?: string
+  ctype_hash: ICType['$id']
+  deleted_at?: string
   id: UUID
-  updatedAt?: string
-  approvedAt?: string
-  revokedAt?: string
+  updated_at?: string
+  approved_at?: string
+  revoked_at?: string
   txState: string
 }

@@ -16,6 +16,7 @@ import RemoveIcon from '@mui/icons-material/Remove'
 import CircularProgress from '@mui/material/CircularProgress'
 import Tooltip from '@mui/material/Tooltip'
 import DownloadIcon from '@mui/icons-material/Download'
+import BookmarkAddedIcon from '@mui/icons-material/BookmarkAdded';
 import { ICType } from '@kiltprotocol/sdk-js'
 import { getExtensions } from '@kiltprotocol/kilt-extension-api'
 
@@ -24,9 +25,12 @@ import { useState } from 'react'
 import { getAxiosClient } from '../api/dataProvider'
 import { getSession } from '../api/session'
 import { isUserAdmin } from '../utils/utils'
+import { InjectedWindowProvider } from '../session'
+import { fetchCredential } from '../api/credential'
 
 const ExpandAttestation = () => {
   const record = useRecordContext<AttestationRequest>()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [theme, _] = useTheme()
   return (
     <ReactJson
@@ -36,7 +40,23 @@ const ExpandAttestation = () => {
   )
 }
 
+
 const ApproveButton = () => {
+  const record = useRecordContext<AttestationRequest>()
+
+  const isApproved = record.marked_approve;
+
+  if (isApproved) {
+    return (
+      <ClaimButton />
+    )
+  }
+  return (
+    <MarkApproveButton />
+  )
+}
+
+const ClaimButton = () => {
   const record = useRecordContext<AttestationRequest>()
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
   const [isLoading, setIsLoading] = useState(false)
@@ -54,7 +74,9 @@ const ApproveButton = () => {
     setTimeout(() => {
       setIsLoading(false)
       refresh()
+      notify("Transaction finished")
     }, 60_000)
+    refresh()
     notify('Transaction for approval is fired')
   }
 
@@ -75,6 +97,45 @@ const ApproveButton = () => {
     </Tooltip>
   )
 }
+
+const MarkApproveButton = () => {
+  const record = useRecordContext<AttestationRequest>()
+  const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
+  const [isLoading, setIsLoading] = useState(false)
+  const notify = useNotify()
+  const refresh = useRefresh()
+
+  const handleClick = async () => {
+    if (isLoading) {
+      return
+    }
+    setIsLoading(true)
+    const client = await getAxiosClient()
+    await client.put(apiURL + '/attestation_request/' + record.id + '/mark_approve')
+    refresh()
+    notify('Marked as claimable')
+    setIsLoading(false)
+  }
+
+  return (
+    <Tooltip title='Mark claimable'>
+      <span>
+        <Fab
+          color='primary'
+          aria-label='add'
+          size='small'
+          disabled={record.approved || isLoading || record.marked_approve}
+          onClick={handleClick}
+          sx={{ marginLeft: '1em', marginRight: '1em' }}
+        >
+          {isLoading ? <CircularProgress color='error' /> : <BookmarkAddedIcon />}
+        </Fab>
+      </span>
+    </Tooltip>
+  )
+}
+
+
 
 const DisableEditButton = () => {
   const record = useRecordContext<AttestationRequest>()
@@ -125,31 +186,41 @@ const RevokeButton = () => {
 const DownloadCredential = () => {
   const record = useRecordContext<AttestationRequest>()
   const [isLoading, setIsLoading] = useState(false)
+  const notify = useNotify()
+  const refresh = useRefresh()
 
   const extensions = getExtensions()
   const hasExtension = extensions.length > 0
 
   const handleClick = async () => {
     setIsLoading(true)
-    const extension = 'sporran'
+    const extensionName = 'Sporran'
+    const extension: InjectedWindowProvider = extensions.find((val) => val.name === extensionName)
 
-    const session = await getSession(
-      extensions.find((val) => val.name === extension),
-      record.id
-    )
+    try {
+      const { session, sessionId } = await getSession(extension)
 
-    setIsLoading(false)
+      await fetchCredential(session, sessionId, record.id);
+      refresh()
+      notify("Claim created")
+      setIsLoading(false)
+    }
+    catch {
+      notify("Could not claim credential.", { type: "error" })
+      setIsLoading(false)
+    }
+
   }
 
   return (
     <>
       {hasExtension && (
-        <Tooltip title='Download'>
+        <Tooltip title='Claim it'>
           <Fab
             color='success'
-            aria-label='download'
+            aria-label='claim'
             size='small'
-            disabled={!record.approved}
+            disabled={!record.marked_approve || record.approved || record.txState === "InFlight"}
             onClick={handleClick}
             sx={{ marginLeft: '1em', marginRight: '1em' }}
           >
@@ -163,7 +234,7 @@ const DownloadCredential = () => {
 
 const URLField = ({ baseURL }: { source: string; baseURL: string }) => {
   const record = useRecordContext<AttestationRequest>()
-  let ctype = record.ctypeHash
+  let ctype = record.ctype_hash
 
   if (!ctype.startsWith('kilt:ctype:')) {
     ctype = `kilt:ctype:${ctype}` as ICType['$id']
