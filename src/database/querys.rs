@@ -12,7 +12,7 @@ pub async fn get_attestation_request_by_id(
 ) -> Result<AttestationResponse, sqlx::Error> {
     sqlx::query_as!(
         AttestationResponse,
-        r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState"
+        r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, marked_approve, tx_state as "tx_state: TxState"
         FROM attestation_requests WHERE id = $1 AND deleted_at is NULL"#,
         attestation_request_id,
     )
@@ -108,7 +108,7 @@ pub async fn insert_attestation_request(
     sqlx::query_as!(
         AttestationResponse,
         r#"INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) 
-        RETURNING  id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState""#,
+        RETURNING  id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, marked_approve, tx_state as "tx_state: TxState""#,
         ctype_hash,
         claimer,
         serde_json::json!(credential)
@@ -123,7 +123,7 @@ pub async fn can_approve_attestation_tx(
 ) -> Result<AttestationResponse, sqlx::Error> {
     sqlx::query_as!(
         AttestationResponse,
-        r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState" 
+        r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, marked_approve, credential, claimer, tx_state as "tx_state: TxState" 
         FROM attestation_requests WHERE id = $1 AND approved = false AND revoked = false AND deleted_at IS NULL"#,
         attestation_request_id
     )
@@ -173,7 +173,7 @@ pub async fn can_revoke_attestation(
 ) -> Result<AttestationResponse, sqlx::Error> {
     sqlx::query_as!(
         AttestationResponse,
-        r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState" 
+        r#"SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, marked_approve, credential, claimer, tx_state as "tx_state: TxState" 
         FROM attestation_requests WHERE id = $1 AND approved = true AND revoked = false AND deleted_at IS NULL"#,
         attestation_request_id
     )
@@ -201,7 +201,7 @@ pub async fn update_attestation_request(
     sqlx::query_as!(
         AttestationResponse,
         r#"UPDATE attestation_requests SET credential = $1 WHERE id = $2 AND approved = false AND deleted_at IS NULL 
-        RETURNING id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as "tx_state: TxState""#,
+        RETURNING id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, marked_approve, credential, claimer, tx_state as "tx_state: TxState""#,
         serde_json::json!(credential),
         attestation_request_id
     )
@@ -281,7 +281,7 @@ pub async fn mark_attestation_approve(
     attestation_request_id: &Uuid,
 ) -> Result<(), sqlx::Error> {
     sqlx::query!(
-        "UPDATE attestation_requests SET approved_at = NOW() WHERE id = $1",
+        "UPDATE attestation_requests SET marked_approve = true, approved_at = NOW() WHERE id = $1",
         attestation_request_id
     )
     .execute(pool)

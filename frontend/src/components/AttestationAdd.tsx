@@ -55,7 +55,19 @@ export const AttestationCreate = () => {
   }
 
   const onEdit = (data: InteractionProps) => {
-    setClaimContent(data.updated_src as IClaimContents)
+
+    const { existing_value, name, updated_src, new_value } = data;
+
+    let fmtSrc;
+
+    if (Number.isInteger(existing_value) && new_value && name) {
+      fmtSrc = {
+        ...updated_src,
+        [name]: + new_value,
+      }
+    }
+
+    setClaimContent(fmtSrc ? fmtSrc : data.updated_src as IClaimContents)
   }
 
   const transformData = () => {

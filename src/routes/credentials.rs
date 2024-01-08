@@ -17,7 +17,7 @@ use crate::{
     AppState,
 };
 
-#[post("/terms/{session}/{attestation_id}")]
+#[post("/terms/{session_id}/{attestation_id}")]
 async fn send_terms(
     state: web::Data<AppState>,
     param: web::Path<(Uuid, Uuid)>,

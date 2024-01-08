@@ -1,6 +1,6 @@
 import { DidUri } from "@kiltprotocol/sdk-js";
 import { useState, useEffect } from "react";
-import { getAxiosClient } from "./dataProvider";
+import { getAxiosClient } from "./api/dataProvider";
 
 interface EncryptedMessage {
   receiverKeyUri: string;
@@ -72,11 +72,11 @@ export async function requestAttestation(
 
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL;
   const challengeUrl = apiURL + "/challenge";
-  const credentialUrl = apiURL + "/credential";
 
-  let client = await getAxiosClient();
 
-  let get_challenge_response = await client.get(challengeUrl);
+  const client = await getAxiosClient();
+
+  const get_challenge_response = await client.get(challengeUrl);
 
   if (get_challenge_response.status !== 200) {
     throw new Error("No valid challenge received");
@@ -103,7 +103,9 @@ export async function requestAttestation(
     attestationId,
   };
 
-  let get_terms_response = await client.post(
+  const credentialUrl = apiURL + "/credential";
+
+  const get_terms_response = await client.post(
     credentialUrl + "/terms/" + session_reference + "/" + attestationId,
     termsRequestData
   );

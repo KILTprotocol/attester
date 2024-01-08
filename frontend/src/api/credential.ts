@@ -1,7 +1,7 @@
 import { getAxiosClient } from './dataProvider'
 import { InjectedWindowProvider } from '@kiltprotocol/kilt-extension-api'
 
-export async function fetchCredential(extension: InjectedWindowProvider) {
+export async function fetchCredential(extension: InjectedWindowProvider, sessionId: string, attestationId: string) {
   const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
 
   const client = await getAxiosClient()
@@ -9,11 +9,9 @@ export async function fetchCredential(extension: InjectedWindowProvider) {
   const credentialUrl = apiURL + '/credential'
 
   const getTermsResponse = await client.post(
-    credentialUrl + '/terms',
-    extension
+    credentialUrl + '/terms/' + sessionId + "/" + attestationId,
+    sessionId
   )
-
-  console.log('terms requests:', getTermsResponse)
 
   const getCredentialRequestFromExtension = await new Promise(
     (resolve, reject) => {
@@ -28,10 +26,9 @@ export async function fetchCredential(extension: InjectedWindowProvider) {
     }
   )
 
-  const attestationMessage = await client.post(
-    credentialUrl,
+  client.post(
+    credentialUrl + "/" + sessionId + "/" + attestationId,
     getCredentialRequestFromExtension
   )
 
-  console.log('Final message: ', attestationMessage)
 }

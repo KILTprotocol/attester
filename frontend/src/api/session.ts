@@ -8,7 +8,6 @@ import {
 
 export async function getSession(
   provider: InjectedWindowProvider,
-  attestationId: string
 ): Promise<PubSubSessionV1 | PubSubSessionV2> {
   if (!provider) {
     throw new Error('No provider')
@@ -42,5 +41,7 @@ export async function getSession(
     throw new Error('No valid Session.')
   }
 
-  return { session, attestationId }
+  const sessionId = sessionVerification.data
+
+  return { session, sessionId }
 }

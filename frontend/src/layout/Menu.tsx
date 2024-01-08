@@ -20,7 +20,7 @@ const Menu = () => {
     >
       <DashboardMenuItem />
       <MenuItemLink
-        to="attestationRequest"
+        to="attestation_request"
         state={{ _scrollToTop: true }}
         primaryText={"Attestations"}
         leftIcon={<AppsIcon />}
