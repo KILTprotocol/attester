@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as \"tx_state: TxState\" \n        FROM attestation_requests WHERE id = $1 AND approved = true AND revoked = false AND deleted_at IS NULL",
+  "query": "SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, marked_approve, tx_state as \"tx_state: TxState\"\n        FROM attestation_requests WHERE id = $1 AND deleted_at is NULL",
   "describe": {
     "columns": [
       {
@@ -60,6 +60,11 @@
       },
       {
         "ordinal": 11,
+        "name": "marked_approve",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 12,
         "name": "tx_state: TxState",
         "type_info": {
           "Custom": {
@@ -93,8 +98,9 @@
       false,
       false,
       false,
+      false,
       true
     ]
   },
-  "hash": "04772cf2ef46f7f0c7769e23074b8c7dff6c0fc10a6fc4a301a0e92c4e719af0"
+  "hash": "ca879d63b2e3a9e270d43619fa7dbad82bdb46902e973d72b9467b92bc6490fd"
 }

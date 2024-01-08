@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) \n        RETURNING  id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, tx_state as \"tx_state: TxState\"",
+  "query": "SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, marked_approve, credential, claimer, tx_state as \"tx_state: TxState\" \n        FROM attestation_requests WHERE id = $1 AND approved = false AND revoked = false AND deleted_at IS NULL",
   "describe": {
     "columns": [
       {
@@ -50,16 +50,21 @@
       },
       {
         "ordinal": 9,
+        "name": "marked_approve",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 10,
         "name": "credential",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "claimer",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 11,
+        "ordinal": 12,
         "name": "tx_state: TxState",
         "type_info": {
           "Custom": {
@@ -78,9 +83,7 @@
     ],
     "parameters": {
       "Left": [
-        "Varchar",
-        "Varchar",
-        "Jsonb"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -95,8 +98,9 @@
       false,
       false,
       false,
+      false,
       true
     ]
   },
-  "hash": "c10932e598809822f696d57e646ac15bbf4e92353b6651c3065d3df6dc7593cd"
+  "hash": "7ec6055601d89f355371e41b9326b6943ab963af7660420a2ae688ad9a6cd9d4"
 }

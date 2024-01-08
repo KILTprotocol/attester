@@ -1,8 +1,11 @@
 FROM node:20.5.1 as frontend-build
 
+ARG build_features=--no-default-features
+ARG port=5656
+
 WORKDIR /usr/src/app
-COPY ./frontend/yarn.lock ./frontend/package.json ./frontend/.yarnrc.yml ./frontend/.yarn ./frontend/.env ./
-RUN corepack enable && yarn set version stable && yarn install
+COPY ./frontend/yarn.lock ./frontend/package.json ./frontend/.env ./
+RUN corepack enable && yarn set version stable && yarn
 COPY frontend ./
 
 RUN yarn build
@@ -16,8 +19,9 @@ RUN apt-get update && \
 WORKDIR /app
 COPY . /app/
 
-RUN cargo build --release --features spiritnet
 RUN cargo install --root /app sqlx-cli
+
+RUN cargo build --release ${build_features}
 
 FROM rust:slim-buster
 
@@ -29,6 +33,6 @@ COPY --from=backend-build /app/bin/sqlx /bin/sqlx
 COPY /migrations /app/migrations
 COPY /config.yaml /app
 
-EXPOSE 7777
+EXPOSE ${port}
 
 CMD [ "sh", "-c", "sqlx migrate run && /app/attester-backend /app/config.yaml" ]

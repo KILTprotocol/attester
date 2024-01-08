@@ -41,7 +41,7 @@
     "typescript": "5.1.6",
     "vite": "^5.0.10"
   },
-  "packageManager": "yarn@4.0.0",
+  "packageManager": "yarn@4.0.2",
   "resolutions": {
     "rollup": "npm:@rollup/wasm-node@*"
   }
