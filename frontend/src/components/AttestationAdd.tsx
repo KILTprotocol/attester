@@ -5,7 +5,7 @@ import { useState } from 'react'
 import ReactJson, { InteractionProps } from 'react-json-view'
 import { fetchCType } from '../utils/utils'
 
-//TODO:fix it currently only working with ctypes with a hight of 1.
+//TODO:fix "It currently only works with ctypes with a height of 1."
 function getDefaultEntryForType({ type }: { type: string }) {
   if (type === 'string') {
     return ''
