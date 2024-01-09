@@ -1,8 +1,8 @@
-import Box from "@mui/material/Box"
-import AppsIcon from "@mui/icons-material/Apps"
-import { DashboardMenuItem, useSidebarState, MenuItemLink } from "react-admin"
+import Box from '@mui/material/Box'
+import AppsIcon from '@mui/icons-material/Apps'
+import { DashboardMenuItem, useSidebarState, MenuItemLink } from 'react-admin'
 
-const Menu = () => {
+export default function Menu() {
   const [open] = useSidebarState()
 
   return (
@@ -12,7 +12,7 @@ const Menu = () => {
         marginTop: 1,
         marginBottom: 1,
         transition: (theme) =>
-          theme.transitions.create("width", {
+          theme.transitions.create('width', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
@@ -22,11 +22,9 @@ const Menu = () => {
       <MenuItemLink
         to="attestation_request"
         state={{ _scrollToTop: true }}
-        primaryText={"Attestations"}
+        primaryText={'Attestations'}
         leftIcon={<AppsIcon />}
       />
     </Box>
   )
 }
-
-export default Menu

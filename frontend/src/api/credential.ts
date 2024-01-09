@@ -6,29 +6,21 @@ export async function fetchCredential(extension: InjectedWindowProvider, session
 
   const client = await getAxiosClient()
 
-  const credentialUrl = apiURL + '/credential'
+  const credentialUrl = `${apiURL}/credential`;
 
-  const getTermsResponse = await client.post(
-    credentialUrl + '/terms/' + sessionId + "/" + attestationId,
-    sessionId
-  )
+  const getTermsResponse = await client.post(`${credentialUrl}/terms/${sessionId}/${attestationId}`, sessionId);
 
-  const getCredentialRequestFromExtension = await new Promise(
-    (resolve, reject) => {
-      try {
-        extension.listen(async (credentialRequest: unknown) => {
-          resolve(credentialRequest)
-        })
-        extension.send(getTermsResponse.data)
-      } catch (e) {
-        reject(e)
-      }
+
+  const getCredentialRequestFromExtension = await new Promise((resolve, reject) => {
+    try {
+      extension.listen(async (credentialRequest: unknown) => {
+        resolve(credentialRequest)
+      })
+      extension.send(getTermsResponse.data)
+    } catch (e) {
+      reject(e)
     }
-  )
+  })
 
-  client.post(
-    credentialUrl + "/" + sessionId + "/" + attestationId,
-    getCredentialRequestFromExtension
-  )
-
+  client.post(`${credentialUrl}/${sessionId}/${attestationId}`, getCredentialRequestFromExtension)
 }

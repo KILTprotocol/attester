@@ -4,7 +4,7 @@ import { UUID } from 'crypto'
 export interface AttestationRequest {
   approved: boolean
   revoked: boolean
-  marked_approve: boolean,
+  marked_approve: boolean
   claimer: DidUri
   createdAt: string
   credential: ICredential

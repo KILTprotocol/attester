@@ -1,9 +1,9 @@
-import simpleRestProvider from "ra-data-simple-rest"
-import authProvider from "./authProvider"
-import { fetchUtils } from "react-admin"
-import axios from "axios"
+import simpleRestProvider from 'ra-data-simple-rest'
+import authProvider from './authProvider'
+import { fetchUtils } from 'react-admin'
+import axios from 'axios'
 
-export const getAxiosClient = async () => {
+export async function getAxiosClient() {
   const token = await authProvider.getToken()
   const instance = axios.create({
     headers: {
@@ -13,13 +13,10 @@ export const getAxiosClient = async () => {
   return instance
 }
 
-const httpClient = async (
-  url: string,
-  options: { [key: string]: any } = {}
-) => {
+async function httpClient(url: string, options: { [key: string]: any } = {}) {
   const token = await authProvider.getToken()
   if (!options.headers) {
-    options.headers = new Headers({ Accept: "application/json" })
+    options.headers = new Headers({ Accept: 'application/json' })
   }
   options.user = {
     authenticated: true,
@@ -28,7 +25,4 @@ const httpClient = async (
   return fetchUtils.fetchJson(url, options)
 }
 
-export const dataProvider = simpleRestProvider(
-  import.meta.env.VITE_SIMPLE_REST_URL,
-  httpClient
-)
+export const dataProvider = simpleRestProvider(import.meta.env.VITE_SIMPLE_REST_URL, httpClient)
