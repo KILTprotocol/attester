@@ -53,7 +53,7 @@ COPY --from=backend-build /app/bin/sqlx /bin/sqlx
 
 # Copy migrations and config
 COPY /migrations /app/migrations
-COPY /config.yaml /app
+VOLUME /app/config.yaml
 
 EXPOSE ${port}
 
