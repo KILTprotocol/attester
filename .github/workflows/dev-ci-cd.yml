@@ -29,9 +29,18 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         with:
           mask-password: "true"
+      - name: test env variables
+        run: |
+          echo "$BACKEND_URL"
+        env:
+          BACKEND_URL: ${{ env.BACKEND_URL }}
+          AUTH_URL: ${{ env.AUTH_URL }}
       - name: Build image
         run: |
           docker build --build-arg BACKEND_URL=$BACKEND_URL --build-arg AUTH_URL=$AUTH_URL --build-arg BUILD_FEATURE="" -t dena-attester:latest .
+        env:
+          BACKEND_URL: ${{ env.BACKEND_URL }}
+          AUTH_URL: ${{ env.AUTH_URL }}
 
       - name: Tag, and push image to Amazon ECR
         env:
