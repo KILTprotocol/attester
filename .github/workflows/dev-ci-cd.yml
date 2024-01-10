@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - test
 
 name: Dev deployment
 
@@ -31,34 +32,10 @@ jobs:
           mask-password: "true"
       - name: test env variables
         run: |
-          echo "$BACKEND_URL"
+          echo "$BACKEND_URL $AUTH_URL"
         env:
-          BACKEND_URL: ${{ env.BACKEND_URL }}
-          AUTH_URL: ${{ env.AUTH_URL }}
-      - name: Build image
-        run: |
-          docker build --build-arg BACKEND_URL=$BACKEND_URL --build-arg AUTH_URL=$AUTH_URL --build-arg BUILD_FEATURE="" -t dena-attester:latest .
-        env:
-          BACKEND_URL: ${{ env.BACKEND_URL }}
-          AUTH_URL: ${{ env.AUTH_URL }}
-
-      - name: Tag, and push image to Amazon ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: dena/attester
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker tag dena-attester $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker tag dena-attester $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-      - name: Deploy to kilt cluster
-        uses: kodermax/kubectl-aws-eks@master
-        env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: dena/attester
-          IMAGE_TAG: ${{ github.sha }}
+          BACKEND_URL: ${{ vars.BACKEND_URL }}
+          AUTH_URL: ${{ vars.AUTH_URL }}
 
         with:
           args: rollout restart deployment dena-attester -n dena-attester-dev
