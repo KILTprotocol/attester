@@ -24,7 +24,7 @@ RUN yarn build
 # Backend Build Stage
 FROM rust:buster as backend-build
 
-ARG ARGS=--features=spiritnet
+ARG BUILD_FEATURE=--features=spiritnet
 
 RUN apt-get update && \
     apt-get -y upgrade && \
@@ -36,7 +36,7 @@ COPY . /app/
 
 
 # Build backend
-RUN cargo build --release --bin=attester-backend --package=attester-backend $ARGS
+RUN cargo build --release --bin=attester-backend --package=attester-backend $BUILD_FEATURE
 
 # Final Stage
 FROM rust:slim-buster
