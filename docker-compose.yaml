@@ -12,7 +12,7 @@ services:
     volumes:
       - data:/var/lib/postgresql/data
 
-  server13:
+  server:
     build: ./
     ports:
       - "5656:5656"
