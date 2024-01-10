@@ -1,45 +1,25 @@
 version: '3'
+
 services:
-  db:
-    image: postgres:latest
-    container_name: my_postgres
+  postgres:
+    image: postgres
     environment:
       POSTGRES_DB: attester
       POSTGRES_USER: dena
       POSTGRES_PASSWORD: secrect
+    ports:
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - data:/var/lib/postgresql/data
+
+  server13:
+    build: ./
     ports:
-      - '5432:5432'
-
-  backend:
-    image: kiltprotocol/attester:latest
-    build: .
-    container_name: my_backend
-    environment:
-      ATTESTER_DID_SEED: 'pave pattern upon invest humble squirrel cram flight wood travel already hint//did//0'
-      ATTESTER_ATTESTATION_SEED: 'pave pattern upon invest humble squirrel cram flight wood travel already hint//did//assertion//0'
-      PAYER_SEED: 'pave pattern upon invest humble squirrel cram flight wood travel already hint'
-      HOST_NAME: '0.0.0.0'
-      WSS_ADDRESS: 'wss://peregrine.kilt.io:443/parachain-public-ws'
-      DATABASE_URL: 'postgres://dena:secrect@db:5432/attester' # Updated database URL
-      RUST_LOG: 'info,debug,error,warn'
-      JWT_SECRET: 'super-secret-jwt-secret'
-      FRONT_END_PATH: '/usr/share/html'
-      PORT: 7777
-
+      - "5656:5656"
     depends_on:
-      - db
-    ports:
-      - '7777:7777' # Adjust the port as needed
-
-  opendid:
-    image: docker.io/kiltprotocol/opendid:latest
-    container_name: opendid
+      - postgres
     volumes:
       - ./config.yaml:/app/config.yaml
-    ports:
-      - '3001:3001' # Adjust the port as needed
 
 volumes:
-  postgres_data:
+  data:
