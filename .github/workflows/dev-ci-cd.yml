@@ -36,6 +36,3 @@ jobs:
         env:
           BACKEND_URL: ${{ vars.BACKEND_URL }}
           AUTH_URL: ${{ vars.AUTH_URL }}
-
-        with:
-          args: rollout restart deployment dena-attester -n dena-attester-dev
