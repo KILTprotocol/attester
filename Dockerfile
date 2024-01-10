@@ -1,14 +1,14 @@
 # Frontend Build Stage
 FROM node:20.5.1 as frontend-build
 
-ARG auth_url=https://dev.opendid.kilt.io/api/v1/authorize
-ARG backend_url=http://0.0.0.0:${port}/api/v1
-ARG wss_endpoint=wss://peregrine.kilt.io:443/parachain-public-ws
+ARG AUTH_URL=https://dev.opendid.kilt.io/api/v1/authorize
+ARG BACKEND_URL=http://0.0.0.0:${port}/api/v1
+ARG WSS_ENDPOINT=wss://peregrine.kilt.io:443/parachain-public-ws
 
 
-ENV VITE_SIMPLE_REST_URL=${backend_url} \
-    VITE_AUTH_URL=${auth_url} \
-    VITE_WSS_ENDPOINT=${wss_endpoint}
+ENV VITE_SIMPLE_REST_URL=${BACKEND_URL} \
+    VITE_AUTH_URL=${AUTH_URL} \
+    VITE_WSS_ENDPOINT=${WSS_ENDPOINT}
 
 WORKDIR /usr/src/app
 
@@ -24,7 +24,7 @@ RUN yarn build
 # Backend Build Stage
 FROM rust:buster as backend-build
 
-ARG args=--features=spiritnet
+ARG ARGS=--features=spiritnet
 
 RUN apt-get update && \
     apt-get -y upgrade && \
@@ -36,12 +36,12 @@ COPY . /app/
 
 
 # Build backend
-RUN cargo build --release --bin=attester-backend --package=attester-backend $args
+RUN cargo build --release --bin=attester-backend --package=attester-backend $ARGS
 
 # Final Stage
 FROM rust:slim-buster
 
-ARG port=5656
+ARG PORT=5656
 
 WORKDIR /app
 
@@ -55,7 +55,7 @@ COPY --from=backend-build /app/target/release/attester-backend /app/attester-bac
 COPY /migrations /app/migrations
 VOLUME /app/config.yaml
 
-EXPOSE ${port}
+EXPOSE ${PORT}
 
 # Run migrations and start the application
 CMD ["/app/attester-backend" , "/app/config.yaml"]
