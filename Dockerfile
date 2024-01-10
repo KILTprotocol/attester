@@ -1,15 +1,14 @@
 # Frontend Build Stage
 FROM node:20.5.1 as frontend-build
 
-ARG build_features=--no-default-features
-ARG port=5656
-ARG backend_url=http://localhost:5656/api/v1
-ARG auth_url=http://localhost:4444/api/v1/authorize
-ARG wss_endpoint=wss://peregrine.kilt.io:443/parachain-public-ws
+ARG AUTH_URL=https://dev.opendid.kilt.io/api/v1/authorize
+ARG BACKEND_URL=http://0.0.0.0:${port}/api/v1
+ARG WSS_ENDPOINT=wss://peregrine.kilt.io:443/parachain-public-ws
 
-ENV VITE_SIMPLE_REST_URL=${backend_url} \
-    VITE_AUTH_URL=${auth_url} \
-    VITE_WSS_ENDPOINT=${wss_endpoint}
+
+ENV VITE_SIMPLE_REST_URL=${BACKEND_URL} \
+    VITE_AUTH_URL=${AUTH_URL} \
+    VITE_WSS_ENDPOINT=${WSS_ENDPOINT}
 
 WORKDIR /usr/src/app
 
@@ -25,6 +24,8 @@ RUN yarn build
 # Backend Build Stage
 FROM rust:buster as backend-build
 
+ARG BUILD_FEATURE=--features=spiritnet
+
 RUN apt-get update && \
     apt-get -y upgrade && \
     apt-get -y install libpq-dev
@@ -33,14 +34,14 @@ WORKDIR /app
 
 COPY . /app/
 
-# Install sqlx-cli
-RUN cargo install --root /app sqlx-cli
 
 # Build backend
-RUN cargo build --release ${build_features}
+RUN cargo build --release --bin=attester-backend --package=attester-backend $BUILD_FEATURE
 
 # Final Stage
 FROM rust:slim-buster
+
+ARG PORT=5656
 
 WORKDIR /app
 
@@ -49,13 +50,12 @@ COPY --from=frontend-build /usr/src/app/dist /usr/share/html
 
 # Copy backend build
 COPY --from=backend-build /app/target/release/attester-backend /app/attester-backend
-COPY --from=backend-build /app/bin/sqlx /bin/sqlx
 
 # Copy migrations and config
 COPY /migrations /app/migrations
 VOLUME /app/config.yaml
 
-EXPOSE ${port}
+EXPOSE ${PORT}
 
 # Run migrations and start the application
-CMD ["sh", "-c", "sqlx migrate run && /app/attester-backend /app/config.yaml"]
+CMD ["/app/attester-backend" , "/app/config.yaml"]
