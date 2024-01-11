@@ -1,13 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import { getAxiosClient } from '../api/dataProvider'
@@ -34,9 +26,8 @@ const Dashboard = () => {
       try {
         const client = await getAxiosClient()
         const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
-        const res = await client.get(
-          apiURL + '/attestation_request/metric/kpis'
-        )
+        const res = await client.get(`${apiURL}/attestation_request/metric/kpis`)
+
         setKpi(res.data)
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -62,9 +53,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Card
         style={{
           margin: '1em',
@@ -72,10 +61,10 @@ const Dashboard = () => {
           width: window.innerWidth * 0.9,
         }}
       >
-        <Typography variant='h5' gutterBottom sx={{ margin: '1em' }}>
+        <Typography variant="h5" gutterBottom sx={{ margin: '1em' }}>
           Total Requested Attestations
         </Typography>
-        <ResponsiveContainer width='100%' height='80%'>
+        <ResponsiveContainer width="100%" height="80%">
           <LineChart
             width={500}
             height={300}
@@ -87,15 +76,11 @@ const Dashboard = () => {
               bottom: 5,
             }}
           >
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='date' />
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
             <YAxis />
             <Tooltip />
-            <Line
-              type='monotone'
-              dataKey='total_attestations_created'
-              stroke='#82ca9d'
-            />
+            <Line type="monotone" dataKey="total_attestations_created" stroke="#82ca9d" />
           </LineChart>
         </ResponsiveContainer>
       </Card>
@@ -114,13 +99,10 @@ const Dashboard = () => {
             position: 'relative',
           }}
         >
-          <Typography variant='h6' gutterBottom sx={{ margin: '1em' }}>
+          <Typography variant="h6" gutterBottom sx={{ margin: '1em' }}>
             Total Attestations not Approved
           </Typography>
-          <Typography
-            sx={{ position: 'absolute', bottom: 0, right: 0, margin: '1em' }}
-            variant='subtitle1'
-          >
+          <Typography sx={{ position: 'absolute', bottom: 0, right: 0, margin: '1em' }} variant="subtitle1">
             {kpi.attestationsNotApproved}
           </Typography>
         </Card>
@@ -133,13 +115,10 @@ const Dashboard = () => {
             position: 'relative',
           }}
         >
-          <Typography variant='h6' gutterBottom sx={{ margin: '1em' }}>
+          <Typography variant="h6" gutterBottom sx={{ margin: '1em' }}>
             Total Attestations revoked
           </Typography>
-          <Typography
-            sx={{ position: 'absolute', bottom: 0, right: 0, margin: '1em' }}
-            variant='subtitle1'
-          >
+          <Typography sx={{ position: 'absolute', bottom: 0, right: 0, margin: '1em' }} variant="subtitle1">
             {kpi.attestationsRevoked}
           </Typography>
         </Card>
@@ -150,13 +129,10 @@ const Dashboard = () => {
             position: 'relative',
           }}
         >
-          <Typography variant='h6' gutterBottom sx={{ margin: '1em' }}>
+          <Typography variant="h6" gutterBottom sx={{ margin: '1em' }}>
             Total Claimers
           </Typography>
-          <Typography
-            sx={{ position: 'absolute', bottom: 0, right: 0, margin: '1em' }}
-            variant='subtitle1'
-          >
+          <Typography sx={{ position: 'absolute', bottom: 0, right: 0, margin: '1em' }} variant="subtitle1">
             {kpi.totalClaimers}
           </Typography>
         </Card>
