@@ -5,7 +5,7 @@ import { Utils } from '@kiltprotocol/sdk-js'
 import Box from '@mui/material/Box'
 import authProvider from '../api/authProvider'
 
-const Login = () => {
+export default function Login() {
   const handleSubmit = useCallback((clientId: string) => {
     const nonce = Utils.UUID.generate()
     const state = Utils.UUID.generate()
@@ -13,7 +13,7 @@ const Login = () => {
     const url = new URL(import.meta.env.VITE_AUTH_URL)
     url.searchParams.append('response_type', 'id_token')
     url.searchParams.append('client_id', clientId as string)
-    url.searchParams.append('redirect_uri', window.location.origin + '/#/login')
+    url.searchParams.append('redirect_uri', `${window.location.origin}/#/login`)
     url.searchParams.append('scope', 'openid')
     url.searchParams.append('state', state)
     url.searchParams.append('nonce', nonce)
@@ -64,19 +64,19 @@ const Login = () => {
         <CardActions sx={{ padding: '0 1em 1em 1em' }}>
           <div style={{ flexDirection: 'column' }}>
             <Button
-              variant='contained'
-              type='submit'
+              variant="contained"
+              type="submit"
               sx={{ marginBottom: '1em' }}
-              color='primary'
+              color="primary"
               onClick={() => handleSubmit('example-client')}
               fullWidth
             >
               Login as Employee
             </Button>
             <Button
-              variant='contained'
-              type='submit'
-              color='secondary'
+              variant="contained"
+              type="submit"
+              color="secondary"
               fullWidth
               onClick={() => handleSubmit('default')}
             >
@@ -88,5 +88,3 @@ const Login = () => {
     </div>
   )
 }
-
-export default Login
