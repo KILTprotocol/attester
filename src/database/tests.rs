@@ -7,7 +7,7 @@ use crate::database::querys::{
     can_revoke_attestation, construct_query, delete_attestation_request,
     get_attestation_request_by_id, get_attestation_requests, get_attestations_count,
     insert_attestation_request, mark_attestation_request_in_flight,
-    record_attestation_request_failed, revoke_attestation_request, update_attestation_request,
+    record_attestation_request_failed, revoke_attestation_request,
 };
 
 fn get_default_attestation_request() -> Credential {
@@ -63,7 +63,6 @@ async fn test_insert_attestation_request_valid(db_executor: PgPool) {
     assert!(!attestation.approved);
     assert!(!attestation.revoked);
     assert!(attestation.deleted_at.is_none());
-    assert!(attestation.updated_at.is_none());
 }
 
 #[sqlx::test]
@@ -305,47 +304,6 @@ fn test_build_pagination_query_no_pagination() {
     assert_eq!(query.1, Vec::<String>::new());
 }
 
-#[sqlx::test]
-async fn test_update_attestation_request_valid_update(db_executor: PgPool) {
-    // Arrange: Insert an attestation request into the database and create an updated credential.
-    let mut default_credential = get_default_attestation_request();
-    let inserted_request = insert_attestation_request(&default_credential, &db_executor)
-        .await
-        .expect("Inserting attestation request should not fail");
-
-    default_credential.root_hash = "UPDATED ROOT HASH".to_string();
-
-    // Act: Update the attestation request with the new credential.
-    let result =
-        update_attestation_request(&inserted_request.id, &default_credential, &db_executor).await;
-
-    // Assert: Check that the update is successful, and the updated credential matches the expected one.
-    assert!(result.is_ok());
-    let updated_request = result.unwrap();
-
-    let updated_credential: Credential = serde_json::from_value(updated_request.credential)
-        .expect("Serde JSON from value should not fail.");
-
-    assert_eq!(updated_credential, default_credential);
-}
-
-#[sqlx::test]
-async fn test_update_attestation_request_invalid_update(db_executor: PgPool) {
-    // Arrange: Insert an attestation request with the default credential into the database and create an invalid ID.
-    let default_credential = get_default_attestation_request();
-
-    insert_attestation_request(&default_credential, &db_executor)
-        .await
-        .expect("Inserting attestation request should not fail");
-
-    let invalid_id = Uuid::new_v4();
-
-    // Act: Attempt to update an attestation request with an invalid ID.
-    let result = update_attestation_request(&invalid_id, &default_credential, &db_executor).await;
-
-    // Assert: Check that the update operation fails as expected.
-    assert!(result.is_err());
-}
 #[sqlx::test]
 async fn test_can_approve_attestation_tx_valid(db_executor: PgPool) {
     // Arrange: Start a transaction and insert a default attestation request.

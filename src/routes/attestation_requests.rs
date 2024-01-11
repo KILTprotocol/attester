@@ -17,7 +17,6 @@ use crate::{
             get_attestation_requests, get_attestations_count, insert_attestation_request,
             mark_attestation_approve, mark_attestation_request_in_flight,
             record_attestation_request_failed, revoke_attestation_request,
-            update_attestation_request,
         },
     },
     error::AppError,
@@ -265,30 +264,6 @@ async fn revoke_attestation(
     Ok(HttpResponse::Ok().json("ok"))
 }
 
-#[put("/{attestation_request_id}")]
-async fn update_attestation(
-    attestation_id: web::Path<Uuid>,
-    state: web::Data<AppState>,
-    user: ReqData<User>,
-    credential: web::Json<Credential>,
-) -> Result<HttpResponse, AppError> {
-    // check role
-    let is_user_allowed =
-        is_user_allowed_to_update_data(&user, &attestation_id, &state.db_executor).await?;
-
-    if !is_user_allowed {
-        Err(actix_web::error::ErrorUnauthorized(
-            "User is not allowed to see data",
-        ))?
-    }
-
-    // update
-    let attestation =
-        update_attestation_request(&attestation_id, &credential, &state.db_executor).await?;
-    log::info!("Attestation with id {:?} is updated", attestation_id);
-    Ok(HttpResponse::Ok().json(serde_json::to_value(&attestation)?))
-}
-
 #[get("/metric/kpis")]
 async fn get_attestation_kpis(state: web::Data<AppState>) -> Result<HttpResponse, AppError> {
     let kpis = attestation_requests_kpis(&state.db_executor).await?;
@@ -302,7 +277,6 @@ pub fn get_attestation_request_scope() -> Scope {
         .service(get_attestations)
         .service(post_attestation)
         .service(delete_attestation)
-        .service(update_attestation)
         .service(revoke_attestation)
         .service(get_attestation_kpis)
         .service(mark_approve_attestation_request)

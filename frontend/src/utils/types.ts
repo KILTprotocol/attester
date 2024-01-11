@@ -11,7 +11,6 @@ export interface AttestationRequest {
   ctype_hash: ICType['$id']
   deleted_at?: string
   id: UUID
-  updated_at?: string
   approved_at?: string
   revoked_at?: string
   txState: string

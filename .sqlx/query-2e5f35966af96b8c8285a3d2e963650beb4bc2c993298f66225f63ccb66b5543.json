@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO attestation_requests (ctype_hash, claimer, credential) VALUES ($1, $2, $3) \n        RETURNING  id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, credential, claimer, marked_approve, tx_state as \"tx_state: TxState\"",
+  "query": "SELECT id, approved, revoked, created_at, deleted_at,  approved_at, revoked_at, ctype_hash, credential, claimer, marked_approve, tx_state as \"tx_state: TxState\"\n        FROM attestation_requests WHERE id = $1 AND deleted_at is NULL",
   "describe": {
     "columns": [
       {
@@ -30,41 +30,36 @@
       },
       {
         "ordinal": 5,
-        "name": "updated_at",
-        "type_info": "Timestamp"
-      },
-      {
-        "ordinal": 6,
         "name": "approved_at",
         "type_info": "Timestamp"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "revoked_at",
         "type_info": "Timestamp"
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "ctype_hash",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 9,
+        "ordinal": 8,
         "name": "credential",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 10,
+        "ordinal": 9,
         "name": "claimer",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 11,
+        "ordinal": 10,
         "name": "marked_approve",
         "type_info": "Bool"
       },
       {
-        "ordinal": 12,
+        "ordinal": 11,
         "name": "tx_state: TxState",
         "type_info": {
           "Custom": {
@@ -83,9 +78,7 @@
     ],
     "parameters": {
       "Left": [
-        "Varchar",
-        "Varchar",
-        "Jsonb"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -96,7 +89,6 @@
       true,
       true,
       true,
-      true,
       false,
       false,
       false,
@@ -104,5 +96,5 @@
       true
     ]
   },
-  "hash": "34e3e01ed0e984aa687fa71899351a6a5cbbabe1deb45c99838c04e94855fa81"
+  "hash": "2e5f35966af96b8c8285a3d2e963650beb4bc2c993298f66225f63ccb66b5543"
 }

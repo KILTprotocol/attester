@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, approved, revoked, created_at, deleted_at, updated_at, approved_at, revoked_at, ctype_hash, marked_approve, credential, claimer, tx_state as \"tx_state: TxState\" \n        FROM attestation_requests WHERE id = $1 AND approved = true AND revoked = false AND deleted_at IS NULL",
+  "query": "SELECT id, approved, revoked, created_at, deleted_at,  approved_at, revoked_at, ctype_hash, marked_approve, credential, claimer, tx_state as \"tx_state: TxState\" \n        FROM attestation_requests WHERE id = $1 AND approved = false AND revoked = false AND deleted_at IS NULL",
   "describe": {
     "columns": [
       {
@@ -30,41 +30,36 @@
       },
       {
         "ordinal": 5,
-        "name": "updated_at",
-        "type_info": "Timestamp"
-      },
-      {
-        "ordinal": 6,
         "name": "approved_at",
         "type_info": "Timestamp"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "revoked_at",
         "type_info": "Timestamp"
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "ctype_hash",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 9,
+        "ordinal": 8,
         "name": "marked_approve",
         "type_info": "Bool"
       },
       {
-        "ordinal": 10,
+        "ordinal": 9,
         "name": "credential",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 11,
+        "ordinal": 10,
         "name": "claimer",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 12,
+        "ordinal": 11,
         "name": "tx_state: TxState",
         "type_info": {
           "Custom": {
@@ -94,7 +89,6 @@
       true,
       true,
       true,
-      true,
       false,
       false,
       false,
@@ -102,5 +96,5 @@
       true
     ]
   },
-  "hash": "dc2f422454de99671ed8a29efaf7c35b6abdf8b8d9b14a91c717c2e9cc5c2cf7"
+  "hash": "8f57f0e917def134ac69060649168112422168d012fcb0785804182369eec0f6"
 }

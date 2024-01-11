@@ -1,0 +1,2 @@
+-- Add down migration script here
+-- No way to re create the deleted column

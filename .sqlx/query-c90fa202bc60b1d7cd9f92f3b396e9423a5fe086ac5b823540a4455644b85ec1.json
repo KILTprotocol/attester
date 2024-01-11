@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE attestation_requests SET revoked = true, revoked_at = NOW(), tx_state = 'Succeeded' WHERE id = $1 AND deleted_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c90fa202bc60b1d7cd9f92f3b396e9423a5fe086ac5b823540a4455644b85ec1"
+}
