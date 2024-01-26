@@ -62,13 +62,13 @@ async fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "spiritnet")]
     log::info!(
-        "Spiritnet features are enabled. WSS adress is set to: {}",
+        "Spiritnet features are enabled. WSS address is set to: {}",
         &config.kilt_endpoint
     );
 
     #[cfg(not(feature = "spiritnet"))]
     log::info!(
-        "Peregrine features are enabled. WSS adress is set to: {}",
+        "Peregrine features are enabled. WSS address is set to: {}",
         &config.kilt_endpoint
     );
 
@@ -87,7 +87,7 @@ async fn main() -> anyhow::Result<()> {
 
     let encryption_key = config
         .get_nacl_secret_key()
-        .context("Creationg of encryption key failed.")?;
+        .context("Creating of encryption key failed.")?;
 
     let well_known_did_config = create_well_known_did_config(&config.well_known_did_config)
         .context("Creating well known did config should not fail.")?;
