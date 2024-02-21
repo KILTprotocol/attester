@@ -26,8 +26,8 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         const client = await getAxiosClient()
-        const apiURL = getBackendUrl()
-        const res = await client.get(`${apiURL}/attestation_request/metric/kpis`)
+        const apiUrl = getBackendUrl()
+        const res = await client.get(`${apiUrl}/attestation_request/metric/kpis`)
 
         setKpi(res.data)
       } catch (error) {

@@ -39,7 +39,7 @@ export default function AttestationList() {
 
   const ClaimButton = () => {
     const record = useRecordContext<AttestationRequest>()
-    const apiURL = getBackendUrl()
+    const apiUrl = getBackendUrl()
     const [isLoading, setIsLoading] = useState(false)
     const notify = useNotify()
     const refresh = useRefresh()
@@ -51,7 +51,7 @@ export default function AttestationList() {
 
       setIsLoading(true)
       const client = await getAxiosClient()
-      await client.put(`${apiURL}/attestation_request/${record.id}/approve`)
+      await client.put(`${apiUrl}/attestation_request/${record.id}/approve`)
       setTimeout(() => {
         setIsLoading(false)
         refresh()
@@ -81,7 +81,7 @@ export default function AttestationList() {
 
   const MarkApproveButton = () => {
     const record = useRecordContext<AttestationRequest>()
-    const apiURL = getBackendUrl()
+    const apiUrl = getBackendUrl()
     const [isLoading, setIsLoading] = useState(false)
     const notify = useNotify()
     const refresh = useRefresh()
@@ -92,7 +92,7 @@ export default function AttestationList() {
       }
       setIsLoading(true)
       const client = await getAxiosClient()
-      await client.put(`${apiURL}/attestation_request/${record.id}/mark_approve`)
+      await client.put(`${apiUrl}/attestation_request/${record.id}/mark_approve`)
       refresh()
       notify('Marked as claimable')
       setIsLoading(false)
@@ -119,7 +119,7 @@ export default function AttestationList() {
   const RevokeButton = () => {
     const record = useRecordContext<AttestationRequest>()
     const [isLoading, setIsLoading] = useState(false)
-    const apiURL = getBackendUrl()
+    const apiUrl = getBackendUrl()
     const notify = useNotify()
     const refresh = useRefresh()
 
@@ -130,7 +130,7 @@ export default function AttestationList() {
       setIsLoading(true)
       const client = await getAxiosClient()
 
-      await client.put(`${apiURL}/attestation_request/${record.id}/revoke`)
+      await client.put(`${apiUrl}/attestation_request/${record.id}/revoke`)
 
       setTimeout(() => {
         setIsLoading(false)

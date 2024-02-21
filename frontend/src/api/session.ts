@@ -8,8 +8,8 @@ export async function getSession(provider: InjectedWindowProvider): Promise<PubS
     throw new Error('No provider')
   }
 
-  const apiURL = getBackendUrl()
-  const challengeUrl = `${apiURL}/challenge`;
+  const apiUrl = getBackendUrl()
+  const challengeUrl = `${apiUrl}/challenge`;
 
   const client = await getAxiosClient()
 
