@@ -42,7 +42,7 @@ pub struct AppState {
     pub session: SessionConfig,
     pub encryption_key: SecretKey,
     pub auth_url: String,
-    pub kilt_endpoint: String,
+    pub endpoint: String,
 }
 
 #[actix_web::main]
@@ -65,13 +65,13 @@ async fn main() -> anyhow::Result<()> {
     #[cfg(feature = "spiritnet")]
     log::info!(
         "Spiritnet features are enabled. WSS address is set to: {}",
-        &config.kilt_endpoint
+        &config.endpoint
     );
 
     #[cfg(not(feature = "spiritnet"))]
     log::info!(
         "Peregrine features are enabled. WSS address is set to: {}",
-        &config.kilt_endpoint
+        &config.endpoint
     );
 
     let signer = config
@@ -106,7 +106,7 @@ async fn main() -> anyhow::Result<()> {
         attester_did,
         encryption_key,
         auth_url: config.auth_url,
-        kilt_endpoint: config.kilt_endpoint,
+        endpoint: config.endpoint,
     };
 
     log::info!("started server at port: {}", port);

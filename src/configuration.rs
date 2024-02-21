@@ -13,7 +13,7 @@ use crate::kilt::KiltConfig;
 #[serde(rename_all = "camelCase")]
 pub struct Configuration {
     pub port: u16,
-    pub kilt_endpoint: String,
+    pub endpoint: String,
     pub session: SessionConfig,
     #[serde(rename = "wellKnownDid")]
     pub well_known_did_config: WellKnownDidConfig,
@@ -57,7 +57,7 @@ impl Configuration {
     }
 
     pub async fn get_client(&self) -> anyhow::Result<OnlineClient<KiltConfig>> {
-        Ok(OnlineClient::<KiltConfig>::from_url(&self.kilt_endpoint).await?)
+        Ok(OnlineClient::<KiltConfig>::from_url(&self.endpoint).await?)
     }
 
     pub fn get_did(&self) -> anyhow::Result<AccountId32> {

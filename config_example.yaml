@@ -5,7 +5,7 @@ port: 5656
 frontEndPath: /path/to/your/frontend
 
 # The socket connection to the Kilt endpoint.
-kiltEndpoint: wss://spiritnet.api.onfinality.io:443/public-ws
+endpoint: wss://spiritnet.api.onfinality.io:443/public-ws
 
 # The application name required for the credential API.
 appName: dena-attester
