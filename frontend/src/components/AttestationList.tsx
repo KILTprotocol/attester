@@ -19,6 +19,8 @@ import { InjectedWindowProvider } from '@kiltprotocol/kilt-extension-api'
 import { fetchCredential } from '../api/credential'
 
 export default function AttestationList() {
+  const apiUrl = getBackendUrl()
+
   const ExpandAttestation = () => {
     const record = useRecordContext<AttestationRequest>()
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,7 +41,6 @@ export default function AttestationList() {
 
   const ClaimButton = () => {
     const record = useRecordContext<AttestationRequest>()
-    const apiUrl = getBackendUrl()
     const [isLoading, setIsLoading] = useState(false)
     const notify = useNotify()
     const refresh = useRefresh()
@@ -81,7 +82,6 @@ export default function AttestationList() {
 
   const MarkApproveButton = () => {
     const record = useRecordContext<AttestationRequest>()
-    const apiUrl = getBackendUrl()
     const [isLoading, setIsLoading] = useState(false)
     const notify = useNotify()
     const refresh = useRefresh()
@@ -119,7 +119,6 @@ export default function AttestationList() {
   const RevokeButton = () => {
     const record = useRecordContext<AttestationRequest>()
     const [isLoading, setIsLoading] = useState(false)
-    const apiUrl = getBackendUrl()
     const notify = useNotify()
     const refresh = useRefresh()
 
