@@ -26,4 +26,5 @@ async function httpClient(url: string, options: { [key: string]: any } = {}) {
   return fetchUtils.fetchJson(url, options)
 }
 
-export const dataProvider = simpleRestProvider(getBackendUrl(), httpClient)
+const apiUrl = getBackendUrl();
+export const dataProvider = simpleRestProvider(apiUrl, httpClient)
