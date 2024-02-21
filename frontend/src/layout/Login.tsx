@@ -4,8 +4,7 @@ import LockIcon from '@mui/icons-material/Lock'
 import { Utils } from '@kiltprotocol/sdk-js'
 import Box from '@mui/material/Box'
 import authProvider from '../api/authProvider'
-import { getEndpoints } from '../api/endpoints'
-import { getAuthorizeUrl, storeEndpoints } from '../utils/utils'
+import { getAuthorizeUrl } from '../utils/utils'
 
 export default function Login() {
   const handleSubmit = useCallback((clientId: string) => {
@@ -28,10 +27,6 @@ export default function Login() {
     if (token) {
       authProvider.login(token)
     }
-  }, [])
-
-  useEffect(() => {
-    getEndpoints().then((endpoints) => storeEndpoints(endpoints))
   }, [])
 
   return (
