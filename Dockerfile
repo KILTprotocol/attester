@@ -1,15 +1,6 @@
 # Frontend Build Stage
 FROM node:20.5.1 as frontend-build
 
-ARG AUTH_URL=https://dev.opendid.kilt.io/api/v1/authorize
-ARG BACKEND_URL=http://0.0.0.0:${port}/api/v1
-ARG WSS_ENDPOINT=wss://peregrine.kilt.io:443/parachain-public-ws
-
-
-ENV VITE_SIMPLE_REST_URL=${BACKEND_URL} \
-    VITE_AUTH_URL=${AUTH_URL} \
-    VITE_WSS_ENDPOINT=${WSS_ENDPOINT}
-
 WORKDIR /usr/src/app
 
 # Copy only package.json and yarn.lock first to leverage Docker cache
@@ -24,8 +15,6 @@ RUN yarn build
 # Backend Build Stage
 FROM rust:buster as backend-build
 
-ARG BUILD_FEATURE=--features=spiritnet
-
 RUN apt-get update && \
     apt-get -y upgrade && \
     apt-get -y install libpq-dev
@@ -34,9 +23,8 @@ WORKDIR /app
 
 COPY . /app/
 
-
 # Build backend
-RUN cargo build --release --bin=attester-backend --package=attester-backend $BUILD_FEATURE
+RUN cargo build --release --bins
 
 # Final Stage
 FROM rust:slim-buster
@@ -49,13 +37,15 @@ WORKDIR /app
 COPY --from=frontend-build /usr/src/app/dist /usr/share/html
 
 # Copy backend build
-COPY --from=backend-build /app/target/release/attester-backend /app/attester-backend
+COPY --from=backend-build /app/target/release/attester_spiritnet /app/attester_spiritnet
+COPY --from=backend-build /app/target/release/attester_peregrine /app/attester_peregrine
 
-# Copy migrations and config
-COPY /migrations /app/migrations
+# Copy migrations config and scripts
+COPY ./migrations /app/migrations
+COPY ./scripts/start.sh /app/start.sh
 VOLUME /app/config.yaml
 
 EXPOSE ${PORT}
 
-# Run migrations and start the application
-CMD ["/app/attester-backend" , "/app/config.yaml"]
+#start the application
+CMD ["./start.sh" ]

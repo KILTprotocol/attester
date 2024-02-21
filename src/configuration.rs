@@ -24,6 +24,7 @@ pub struct Configuration {
     pub jwt_secret: String,
     pub payer_seed: String,
     pub app_name: String,
+    pub auth_url: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

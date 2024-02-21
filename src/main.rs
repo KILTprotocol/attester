@@ -24,7 +24,7 @@ use cli::Cli;
 use configuration::{Configuration, SessionConfig};
 use kilt::{create_well_known_did_config, KiltConfig, WellKnownDidConfig};
 use routes::{
-    get_attestation_request_scope, get_challenge_scope, get_credential_scope,
+    get_attestation_request_scope, get_challenge_scope, get_credential_scope, get_endpoint_scope,
     well_known_did_config_handler,
 };
 
@@ -41,6 +41,8 @@ pub struct AppState {
     pub well_known_did_config: WellKnownDidConfig,
     pub session: SessionConfig,
     pub encryption_key: SecretKey,
+    pub auth_url: String,
+    pub kilt_endpoint: String,
 }
 
 #[actix_web::main]
@@ -103,6 +105,8 @@ async fn main() -> anyhow::Result<()> {
         chain_client: Arc::new(chain_client),
         attester_did,
         encryption_key,
+        auth_url: config.auth_url,
+        kilt_endpoint: config.kilt_endpoint,
     };
 
     log::info!("started server at port: {}", port);
@@ -119,6 +123,7 @@ async fn main() -> anyhow::Result<()> {
             .service(get_attestation_request_scope().wrap(auth.clone()))
             .service(get_challenge_scope().wrap(auth.clone()))
             .service(get_credential_scope().wrap(auth.clone()))
+            .service(get_endpoint_scope())
             .service(well_known_did_config_handler)
             .service(actix_files::Files::new("/", &front_end_path).index_file("index.html"))
     })

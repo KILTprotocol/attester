@@ -1,0 +1,46 @@
+# Port on which the server runs
+port: 5656
+
+# The path to the bundled frontend.
+frontEndPath: /path/to/your/frontend
+
+# The socket connection to the Kilt endpoint.
+kiltEndpoint: wss://spiritnet.api.onfinality.io:443/public-ws
+
+# The application name required for the credential API.
+appName: dena-attester
+
+# The PostgreSQL database URL.
+databaseUrl:
+
+# The redirect URL which is needed by OpenDID.
+redirectUrls:
+
+# Seed used for creating credentials.
+attesterDidSeed:
+
+# Seed used for the attestation keys by the Attester DID.
+attesterAttestationSeed:
+
+# The secret used to verify the JWT token from OpenDID.
+jwtSecret: super-secret-jwt-secret
+
+# A payer seed, who pays to anchor the credentials to the blockchain.
+payerSeed:
+
+# The URL endpoint for login.
+authUrl: "https://opendid.kilt.io/api/v1/authorize"
+
+# Session variables for creating a secure session needed by the credential API.
+session:
+  keyUri:
+  naclSecretKey:
+  naclPublicKey:
+  sessionKey:
+
+# The well-known DID configuration required by Sporran.
+wellKnownDid:
+  did:
+  origin:
+  keyUri:
+  seed:

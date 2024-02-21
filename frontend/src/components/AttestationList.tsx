@@ -14,7 +14,7 @@ import { AttestationRequest } from '../utils/types'
 import { useState } from 'react'
 import { getAxiosClient } from '../api/dataProvider'
 import { getSession } from '../api/session'
-import { isUserAdmin } from '../utils/utils'
+import { getBackendUrl, isUserAdmin } from '../utils/utils'
 import { InjectedWindowProvider } from '@kiltprotocol/kilt-extension-api'
 import { fetchCredential } from '../api/credential'
 
@@ -39,7 +39,7 @@ export default function AttestationList() {
 
   const ClaimButton = () => {
     const record = useRecordContext<AttestationRequest>()
-    const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
+    const apiURL = getBackendUrl()
     const [isLoading, setIsLoading] = useState(false)
     const notify = useNotify()
     const refresh = useRefresh()
@@ -81,7 +81,7 @@ export default function AttestationList() {
 
   const MarkApproveButton = () => {
     const record = useRecordContext<AttestationRequest>()
-    const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
+    const apiURL = getBackendUrl()
     const [isLoading, setIsLoading] = useState(false)
     const notify = useNotify()
     const refresh = useRefresh()
@@ -119,7 +119,7 @@ export default function AttestationList() {
   const RevokeButton = () => {
     const record = useRecordContext<AttestationRequest>()
     const [isLoading, setIsLoading] = useState(false)
-    const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
+    const apiURL = getBackendUrl()
     const notify = useNotify()
     const refresh = useRefresh()
 
