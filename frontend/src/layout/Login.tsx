@@ -4,13 +4,14 @@ import LockIcon from '@mui/icons-material/Lock'
 import { Utils } from '@kiltprotocol/sdk-js'
 import Box from '@mui/material/Box'
 import authProvider from '../api/authProvider'
+import { getAuthorizeUrl } from '../utils/utils'
 
 export default function Login() {
   const handleSubmit = useCallback((clientId: string) => {
     const nonce = Utils.UUID.generate()
     const state = Utils.UUID.generate()
 
-    const url = new URL(import.meta.env.VITE_AUTH_URL)
+    const url = new URL(getAuthorizeUrl())
     url.searchParams.append('response_type', 'id_token')
     url.searchParams.append('client_id', clientId as string)
     url.searchParams.append('redirect_uri', `${window.location.origin}/#/login`)

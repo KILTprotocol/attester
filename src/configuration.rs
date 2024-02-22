@@ -4,7 +4,6 @@ use subxt::{
     ext::sp_core::{sr25519::Pair, Pair as PairTrait},
     tx::PairSigner,
     utils::AccountId32,
-    OnlineClient,
 };
 
 use crate::kilt::KiltConfig;
@@ -13,7 +12,7 @@ use crate::kilt::KiltConfig;
 #[serde(rename_all = "camelCase")]
 pub struct Configuration {
     pub port: u16,
-    pub kilt_endpoint: String,
+    pub endpoint: String,
     pub session: SessionConfig,
     #[serde(rename = "wellKnownDid")]
     pub well_known_did_config: WellKnownDidConfig,
@@ -24,6 +23,7 @@ pub struct Configuration {
     pub jwt_secret: String,
     pub payer_seed: String,
     pub app_name: String,
+    pub auth_url: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -53,10 +53,6 @@ impl Configuration {
     pub fn get_payer_signer(&self) -> anyhow::Result<PairSigner<KiltConfig, Pair>> {
         let pair = Pair::from_string_with_seed(&self.payer_seed, None)?.0;
         Ok(PairSigner::new(pair))
-    }
-
-    pub async fn get_client(&self) -> anyhow::Result<OnlineClient<KiltConfig>> {
-        Ok(OnlineClient::<KiltConfig>::from_url(&self.kilt_endpoint).await?)
     }
 
     pub fn get_did(&self) -> anyhow::Result<AccountId32> {

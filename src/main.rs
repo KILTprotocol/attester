@@ -16,7 +16,7 @@ use clap::Parser;
 use sodiumoxide::crypto::box_::SecretKey;
 use sqlx::{Pool, Postgres};
 use std::sync::Arc;
-use subxt::{ext::sp_core::sr25519::Pair, tx::PairSigner, utils::AccountId32, OnlineClient};
+use subxt::{ext::sp_core::sr25519::Pair, tx::PairSigner, utils::AccountId32};
 
 // internal imports
 use auth::jwt_validator;
@@ -24,7 +24,7 @@ use cli::Cli;
 use configuration::{Configuration, SessionConfig};
 use kilt::{create_well_known_did_config, KiltConfig, WellKnownDidConfig};
 use routes::{
-    get_attestation_request_scope, get_challenge_scope, get_credential_scope,
+    get_attestation_request_scope, get_challenge_scope, get_credential_scope, get_endpoint_scope,
     well_known_did_config_handler,
 };
 
@@ -35,12 +35,13 @@ pub struct AppState {
     pub signer: Arc<PairSigner<KiltConfig, Pair>>,
     pub app_name: String,
     pub jwt_secret: String,
-    pub chain_client: Arc<OnlineClient<KiltConfig>>,
     pub db_executor: Arc<Pool<Postgres>>,
     pub attester_did: AccountId32,
     pub well_known_did_config: WellKnownDidConfig,
     pub session: SessionConfig,
     pub encryption_key: SecretKey,
+    pub auth_url: String,
+    pub endpoint: String,
 }
 
 #[actix_web::main]
@@ -63,13 +64,13 @@ async fn main() -> anyhow::Result<()> {
     #[cfg(feature = "spiritnet")]
     log::info!(
         "Spiritnet features are enabled. WSS address is set to: {}",
-        &config.kilt_endpoint
+        &config.endpoint
     );
 
     #[cfg(not(feature = "spiritnet"))]
     log::info!(
         "Peregrine features are enabled. WSS address is set to: {}",
-        &config.kilt_endpoint
+        &config.endpoint
     );
 
     let signer = config
@@ -79,11 +80,6 @@ async fn main() -> anyhow::Result<()> {
     let payer = config
         .get_payer_signer()
         .context("Creating signer should not fail.")?;
-
-    let chain_client = config
-        .get_client()
-        .await
-        .context("Creation of online client failed")?;
 
     let encryption_key = config
         .get_nacl_secret_key()
@@ -100,9 +96,10 @@ async fn main() -> anyhow::Result<()> {
         db_executor: Arc::new(db_executor),
         payer: Arc::new(payer),
         signer: Arc::new(signer),
-        chain_client: Arc::new(chain_client),
         attester_did,
         encryption_key,
+        auth_url: config.auth_url,
+        endpoint: config.endpoint,
     };
 
     log::info!("started server at port: {}", port);
@@ -119,6 +116,7 @@ async fn main() -> anyhow::Result<()> {
             .service(get_attestation_request_scope().wrap(auth.clone()))
             .service(get_challenge_scope().wrap(auth.clone()))
             .service(get_credential_scope().wrap(auth.clone()))
+            .service(get_endpoint_scope())
             .service(well_known_did_config_handler)
             .service(actix_files::Files::new("/", &front_end_path).index_file("index.html"))
     })

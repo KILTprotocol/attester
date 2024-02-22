@@ -2,6 +2,7 @@ import simpleRestProvider from 'ra-data-simple-rest'
 import authProvider from './authProvider'
 import { fetchUtils } from 'react-admin'
 import axios from 'axios'
+import { getBackendUrl } from '../utils/utils'
 
 export async function getAxiosClient() {
   const token = await authProvider.getToken()
@@ -25,4 +26,5 @@ async function httpClient(url: string, options: { [key: string]: any } = {}) {
   return fetchUtils.fetchJson(url, options)
 }
 
-export const dataProvider = simpleRestProvider(import.meta.env.VITE_SIMPLE_REST_URL, httpClient)
+const apiUrl = getBackendUrl();
+export const dataProvider = simpleRestProvider(apiUrl, httpClient)

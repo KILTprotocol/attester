@@ -1,3 +1,4 @@
+import { getBackendUrl } from '../utils/utils';
 import { getAxiosClient } from './dataProvider'
 
 import { InjectedWindowProvider, PubSubSessionV1, PubSubSessionV2 } from '@kiltprotocol/kilt-extension-api'
@@ -7,8 +8,8 @@ export async function getSession(provider: InjectedWindowProvider): Promise<PubS
     throw new Error('No provider')
   }
 
-  const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
-  const challengeUrl = `${apiURL}/challenge`;
+  const apiUrl = getBackendUrl()
+  const challengeUrl = `${apiUrl}/challenge`;
 
   const client = await getAxiosClient()
 
@@ -21,8 +22,6 @@ export async function getSession(provider: InjectedWindowProvider): Promise<PubS
   const { dAppName, dAppEncryptionKeyUri, challenge } = getChallengeReponse.data
 
   const session = await provider.startSession(dAppName, dAppEncryptionKeyUri, challenge)
-
-  console.log('Here is the session', session)
 
   // post challenge and receive encrypted Message.
   const sessionVerification = await client.post(challengeUrl, session)

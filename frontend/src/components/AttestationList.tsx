@@ -14,11 +14,13 @@ import { AttestationRequest } from '../utils/types'
 import { useState } from 'react'
 import { getAxiosClient } from '../api/dataProvider'
 import { getSession } from '../api/session'
-import { isUserAdmin } from '../utils/utils'
+import { getBackendUrl, isUserAdmin } from '../utils/utils'
 import { InjectedWindowProvider } from '@kiltprotocol/kilt-extension-api'
 import { fetchCredential } from '../api/credential'
 
 export default function AttestationList() {
+  const apiUrl = getBackendUrl()
+
   const ExpandAttestation = () => {
     const record = useRecordContext<AttestationRequest>()
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,7 +41,6 @@ export default function AttestationList() {
 
   const ClaimButton = () => {
     const record = useRecordContext<AttestationRequest>()
-    const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
     const [isLoading, setIsLoading] = useState(false)
     const notify = useNotify()
     const refresh = useRefresh()
@@ -51,7 +52,7 @@ export default function AttestationList() {
 
       setIsLoading(true)
       const client = await getAxiosClient()
-      await client.put(`${apiURL}/attestation_request/${record.id}/approve`)
+      await client.put(`${apiUrl}/attestation_request/${record.id}/approve`)
       setTimeout(() => {
         setIsLoading(false)
         refresh()
@@ -81,7 +82,6 @@ export default function AttestationList() {
 
   const MarkApproveButton = () => {
     const record = useRecordContext<AttestationRequest>()
-    const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
     const [isLoading, setIsLoading] = useState(false)
     const notify = useNotify()
     const refresh = useRefresh()
@@ -92,7 +92,7 @@ export default function AttestationList() {
       }
       setIsLoading(true)
       const client = await getAxiosClient()
-      await client.put(`${apiURL}/attestation_request/${record.id}/mark_approve`)
+      await client.put(`${apiUrl}/attestation_request/${record.id}/mark_approve`)
       refresh()
       notify('Marked as claimable')
       setIsLoading(false)
@@ -119,7 +119,6 @@ export default function AttestationList() {
   const RevokeButton = () => {
     const record = useRecordContext<AttestationRequest>()
     const [isLoading, setIsLoading] = useState(false)
-    const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
     const notify = useNotify()
     const refresh = useRefresh()
 
@@ -130,7 +129,7 @@ export default function AttestationList() {
       setIsLoading(true)
       const client = await getAxiosClient()
 
-      await client.put(`${apiURL}/attestation_request/${record.id}/revoke`)
+      await client.put(`${apiUrl}/attestation_request/${record.id}/revoke`)
 
       setTimeout(() => {
         setIsLoading(false)

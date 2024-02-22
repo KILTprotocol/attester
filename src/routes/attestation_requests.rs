@@ -4,7 +4,7 @@ use actix_web::{
     HttpResponse, Scope,
 };
 
-use subxt::ext::sp_core::H256;
+use subxt::{ext::sp_core::H256, OnlineClient};
 use uuid::Uuid;
 
 use crate::{
@@ -20,6 +20,7 @@ use crate::{
         },
     },
     error::AppError,
+    kilt::KiltConfig,
     utils::{is_user_admin, is_user_allowed_to_see_data, is_user_allowed_to_update_data},
     AppState,
 };
@@ -124,7 +125,7 @@ async fn approve_attestation(
 
     let payer = state.payer.clone();
     let did = state.attester_did.clone();
-    let chain_client = state.chain_client.clone();
+    let chain_client = OnlineClient::<KiltConfig>::from_url(&state.endpoint).await?;
     let signer = state.signer.clone();
 
     log::info!(
@@ -216,7 +217,7 @@ async fn revoke_attestation(
 
     let payer = state.payer.clone();
     let did = state.attester_did.clone();
-    let chain_client = state.chain_client.clone();
+    let chain_client = OnlineClient::<KiltConfig>::from_url(&state.endpoint).await?;
     let signer = state.signer.clone();
 
     log::info!(
