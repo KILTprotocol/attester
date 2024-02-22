@@ -49,14 +49,15 @@ tokio = {version = "1", features = ["full"]}
 uuid = {version = "1.4.1", features = ["v4", "serde"]}
 
 [features]
-default = []
+peregrine = []
 spiritnet = []
 
 [[bin]]
-features = ["spiritnet"]
 name = "attester_spiritnet"
 path = "src/main.rs"
+required-features = ["spiritnet"]
 
 [[bin]]
 name = "attester_peregrine"
 path = "src/main.rs"
+required-features = ["peregrine"]

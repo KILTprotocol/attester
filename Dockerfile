@@ -24,7 +24,8 @@ WORKDIR /app
 COPY . /app/
 
 # Build backend
-RUN cargo build --release --bins
+RUN cargo build --release --features=peregrine --bin=attester_peregrine
+RUN cargo build --release --features=spiritnet --bin=attester_spiritnet
 
 # Final Stage
 FROM rust:slim-buster
