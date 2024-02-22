@@ -4,6 +4,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import { getAxiosClient } from '../api/dataProvider'
 import CircularProgress from '@mui/material/CircularProgress'
+import { getBackendUrl } from '../utils/utils'
 
 interface AttestationChartData {
   date: string
@@ -25,8 +26,8 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         const client = await getAxiosClient()
-        const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
-        const res = await client.get(`${apiURL}/attestation_request/metric/kpis`)
+        const apiUrl = getBackendUrl()
+        const res = await client.get(`${apiUrl}/attestation_request/metric/kpis`)
 
         setKpi(res.data)
       } catch (error) {

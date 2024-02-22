@@ -1,12 +1,13 @@
+import { getBackendUrl } from '../utils/utils';
 import { getAxiosClient } from './dataProvider'
 import { InjectedWindowProvider } from '@kiltprotocol/kilt-extension-api'
 
 export async function fetchCredential(extension: InjectedWindowProvider, sessionId: string, attestationId: string) {
-  const apiURL = import.meta.env.VITE_SIMPLE_REST_URL
+  const apiUrl = getBackendUrl()
 
   const client = await getAxiosClient()
 
-  const credentialUrl = `${apiURL}/credential`;
+  const credentialUrl = `${apiUrl}/credential`;
 
   const getTermsResponse = await client.post(`${credentialUrl}/terms/${sessionId}/${attestationId}`, sessionId);
 
