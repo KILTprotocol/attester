@@ -36,7 +36,8 @@ COPY . /app/
 
 
 # Build backend
-RUN cargo build --release --bin=attester-backend --package=attester-backend $BUILD_FEATURE
+RUN cargo build --release --features=peregrine --bin=attester_peregrine
+RUN cargo build --release --features=spiritnet --bin=attester_spiritnet
 
 # Final Stage
 FROM rust:slim-buster
