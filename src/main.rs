@@ -16,7 +16,7 @@ use clap::Parser;
 use sodiumoxide::crypto::box_::SecretKey;
 use sqlx::{Pool, Postgres};
 use std::sync::Arc;
-use subxt::{ext::sp_core::sr25519::Pair, tx::PairSigner, utils::AccountId32, OnlineClient};
+use subxt::{ext::sp_core::sr25519::Pair, tx::PairSigner, utils::AccountId32};
 
 // internal imports
 use auth::jwt_validator;
@@ -35,7 +35,6 @@ pub struct AppState {
     pub signer: Arc<PairSigner<KiltConfig, Pair>>,
     pub app_name: String,
     pub jwt_secret: String,
-    pub chain_client: Arc<OnlineClient<KiltConfig>>,
     pub db_executor: Arc<Pool<Postgres>>,
     pub attester_did: AccountId32,
     pub well_known_did_config: WellKnownDidConfig,
@@ -82,11 +81,6 @@ async fn main() -> anyhow::Result<()> {
         .get_payer_signer()
         .context("Creating signer should not fail.")?;
 
-    let chain_client = config
-        .get_client()
-        .await
-        .context("Creation of online client failed")?;
-
     let encryption_key = config
         .get_nacl_secret_key()
         .context("Creating of encryption key failed.")?;
@@ -102,7 +96,6 @@ async fn main() -> anyhow::Result<()> {
         db_executor: Arc::new(db_executor),
         payer: Arc::new(payer),
         signer: Arc::new(signer),
-        chain_client: Arc::new(chain_client),
         attester_did,
         encryption_key,
         auth_url: config.auth_url,

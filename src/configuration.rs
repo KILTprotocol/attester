@@ -4,7 +4,6 @@ use subxt::{
     ext::sp_core::{sr25519::Pair, Pair as PairTrait},
     tx::PairSigner,
     utils::AccountId32,
-    OnlineClient,
 };
 
 use crate::kilt::KiltConfig;
@@ -54,10 +53,6 @@ impl Configuration {
     pub fn get_payer_signer(&self) -> anyhow::Result<PairSigner<KiltConfig, Pair>> {
         let pair = Pair::from_string_with_seed(&self.payer_seed, None)?.0;
         Ok(PairSigner::new(pair))
-    }
-
-    pub async fn get_client(&self) -> anyhow::Result<OnlineClient<KiltConfig>> {
-        Ok(OnlineClient::<KiltConfig>::from_url(&self.endpoint).await?)
     }
 
     pub fn get_did(&self) -> anyhow::Result<AccountId32> {

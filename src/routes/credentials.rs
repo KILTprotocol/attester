@@ -1,6 +1,7 @@
 use actix_web::{post, web, HttpResponse, Scope};
 use sodiumoxide::crypto::box_;
 use sp_core::H256;
+use subxt::OnlineClient;
 use uuid::Uuid;
 
 use crate::{
@@ -14,6 +15,7 @@ use crate::{
         },
     },
     error::AppError,
+    kilt::KiltConfig,
     AppState,
 };
 
@@ -110,10 +112,11 @@ async fn request_attestation(
     }
 
     remove_session(&state.db_executor, &session_id).await?;
+    let chain_client = OnlineClient::<KiltConfig>::from_url(&state.endpoint).await?;
 
     let others_pubkey = crate::kilt::get_encryption_key_from_fulldid_key_uri(
         &encrypted_message.sender_key_uri,
-        &state.chain_client,
+        &chain_client,
     )
     .await?;
 
@@ -140,7 +143,7 @@ async fn request_attestation(
 
     let payer = state.payer.clone();
     let did = state.attester_did.clone();
-    let chain_client = state.chain_client.clone();
+    let chain_client = OnlineClient::<KiltConfig>::from_url(&state.endpoint).await?;
     let signer = state.signer.clone();
 
     crate::kilt::create_claim(
