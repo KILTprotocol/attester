@@ -17,14 +17,14 @@ pub use tx::*;
 pub use well_known_did_configuration::*;
 
 #[cfg(feature = "spiritnet")]
-#[subxt::subxt(runtime_metadata_path = "./metadata_spiritnet_11110.scale")]
+#[subxt::subxt(runtime_metadata_path = "./metadata_spiritnet_11300.scale")]
 pub mod runtime {}
 
 #[cfg(feature = "spiritnet")]
 pub type RuntimeCall = runtime::runtime_types::spiritnet_runtime::RuntimeCall;
 
 #[cfg(feature = "peregrine")]
-#[subxt::subxt(runtime_metadata_path = "metadata_peregrine_11210.scale")]
+#[subxt::subxt(runtime_metadata_path = "./metadata_peregrine_11300.scale")]
 pub mod runtime {}
 
 #[cfg(feature = "peregrine")]
