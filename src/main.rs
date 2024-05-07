@@ -9,7 +9,16 @@ mod utils;
 
 // external imports
 use actix_cors::Cors;
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_session::{
+    config::{CookieContentSecurity, PersistentSession},
+    storage::CookieSessionStore,
+    SessionMiddleware,
+};
+use actix_web::{
+    cookie::{time::Duration, Key},
+    middleware::Logger,
+    web, App, HttpServer,
+};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use anyhow::Context;
 use clap::Parser;
@@ -21,7 +30,7 @@ use subxt::{ext::sp_core::sr25519::Pair, tx::PairSigner, utils::AccountId32};
 // internal imports
 use auth::jwt_validator;
 use cli::Cli;
-use configuration::{Configuration, SessionConfig};
+use configuration::Configuration;
 use kilt::{create_well_known_did_config, KiltConfig, WellKnownDidConfig};
 use routes::{
     get_attestation_request_scope, get_challenge_scope, get_credential_scope, get_endpoint_scope,
@@ -38,8 +47,8 @@ pub struct AppState {
     pub db_executor: Arc<Pool<Postgres>>,
     pub attester_did: AccountId32,
     pub well_known_did_config: WellKnownDidConfig,
-    pub session: SessionConfig,
-    pub encryption_key: SecretKey,
+    pub secret_key: SecretKey,
+    pub session_encryption_public_key_uri: String,
     pub auth_url: String,
     pub endpoint: String,
 }
@@ -81,15 +90,16 @@ async fn main() -> anyhow::Result<()> {
         .get_payer_signer()
         .context("Creating signer should not fail.")?;
 
-    let encryption_key = config
+    let secret_key = config
         .get_nacl_secret_key()
         .context("Creating of encryption key failed.")?;
+
+    let session_encryption_public_key_uri = config.session.key_uri;
 
     let well_known_did_config = create_well_known_did_config(&config.well_known_did_config)
         .context("Creating well known did config should not fail.")?;
 
     let app_state = AppState {
-        session: config.session,
         jwt_secret: config.jwt_secret,
         app_name: config.app_name,
         well_known_did_config,
@@ -97,7 +107,8 @@ async fn main() -> anyhow::Result<()> {
         payer: Arc::new(payer),
         signer: Arc::new(signer),
         attester_did,
-        encryption_key,
+        secret_key,
+        session_encryption_public_key_uri,
         auth_url: config.auth_url,
         endpoint: config.endpoint,
     };
@@ -112,6 +123,17 @@ async fn main() -> anyhow::Result<()> {
         App::new()
             .wrap(logger)
             .wrap(cors)
+            .wrap(
+                SessionMiddleware::builder(CookieSessionStore::default(), Key::generate())
+                    .cookie_content_security(CookieContentSecurity::Private)
+                    .cookie_http_only(true)
+                    .cookie_secure(false)
+                    .cookie_name("attester".to_string())
+                    .session_lifecycle(
+                        PersistentSession::default().session_ttl(Duration::seconds(60)),
+                    )
+                    .build(),
+            )
             .app_data(web::Data::new(app_state.clone()))
             .service(get_attestation_request_scope().wrap(auth.clone()))
             .service(get_challenge_scope().wrap(auth.clone()))

@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::database::dto::{
     AttestationCreatedOverTime, AttestationKPIs, AttestationResponse, Credential, Pagination,
-    Session, TxState,
+    TxState,
 };
 
 pub async fn get_attestation_request_by_id(
@@ -232,34 +232,6 @@ pub async fn attestation_requests_kpis(pool: &PgPool) -> Result<AttestationKPIs,
     })
 }
 
-pub async fn generate_new_session(pool: &PgPool) -> Result<Uuid, sqlx::Error> {
-    let result = sqlx::query!("INSERT INTO session_request DEFAULT VALUES RETURNING id")
-        .fetch_one(pool)
-        .await?;
-    Ok(result.id)
-}
-
-pub async fn get_session(pool: &PgPool, id: &Uuid) -> Result<Session, sqlx::Error> {
-    sqlx::query_as!(Session, "SELECT * FROM session_request WHERE id = $1;", id)
-        .fetch_one(pool)
-        .await
-}
-
-pub async fn update_session(
-    pool: &PgPool,
-    id: &Uuid,
-    encryption_key_uri: &str,
-) -> Result<Session, sqlx::Error> {
-    sqlx::query_as!(
-        Session,
-        "UPDATE session_request SET encryption_key_uri = $1 WHERE id = $2 RETURNING *",
-        encryption_key_uri,
-        id,
-    )
-    .fetch_one(pool)
-    .await
-}
-
 pub async fn mark_attestation_approve(
     pool: &PgPool,
     attestation_request_id: &Uuid,
@@ -271,10 +243,4 @@ pub async fn mark_attestation_approve(
     .execute(pool)
     .await?;
     Ok(())
-}
-
-pub async fn remove_session(pool: &PgPool, id: &Uuid) -> Result<PgQueryResult, sqlx::Error> {
-    sqlx::query!("DELETE FROM session_request WHERE id = $1", id)
-        .execute(pool)
-        .await
 }

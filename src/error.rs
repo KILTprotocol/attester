@@ -18,9 +18,9 @@ pub enum AppError {
     #[error("Hex error: {0}")]
     Hex(#[from] hex::FromHexError),
     #[error("Challenge error: {0}")]
-    Challenge(String),
+    Challenge(&'static str),
     #[error("Light DID error: {0}")]
-    LightDid(String),
+    LightDid(&'static str),
     #[error("DID error: {0}")]
     Did(&'static str),
     #[error("Attestation error: {0}")]

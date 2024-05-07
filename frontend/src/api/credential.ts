@@ -1,16 +1,15 @@
-import { getBackendUrl } from '../utils/utils';
+import { getBackendUrl } from '../utils/utils'
 import { getAxiosClient } from './dataProvider'
 import { InjectedWindowProvider } from '@kiltprotocol/kilt-extension-api'
 
-export async function fetchCredential(extension: InjectedWindowProvider, sessionId: string, attestationId: string) {
+export async function fetchCredential(extension: InjectedWindowProvider, attestationId: string) {
   const apiUrl = getBackendUrl()
 
   const client = await getAxiosClient()
 
-  const credentialUrl = `${apiUrl}/credential`;
+  const credentialUrl = `${apiUrl}/credential`
 
-  const getTermsResponse = await client.post(`${credentialUrl}/terms/${sessionId}/${attestationId}`, sessionId);
-
+  const getTermsResponse = await client.post(`${credentialUrl}/terms/${attestationId}`)
 
   const getCredentialRequestFromExtension = await new Promise((resolve, reject) => {
     try {
@@ -23,5 +22,5 @@ export async function fetchCredential(extension: InjectedWindowProvider, session
     }
   })
 
-  client.post(`${credentialUrl}/${sessionId}/${attestationId}`, getCredentialRequestFromExtension)
+  client.post(`${credentialUrl}/${attestationId}`, getCredentialRequestFromExtension)
 }
