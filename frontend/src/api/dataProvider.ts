@@ -10,6 +10,7 @@ export async function getAxiosClient() {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    withCredentials: true,
   })
   return instance
 }
@@ -26,5 +27,5 @@ async function httpClient(url: string, options: { [key: string]: any } = {}) {
   return fetchUtils.fetchJson(url, options)
 }
 
-const apiUrl = getBackendUrl();
+const apiUrl = getBackendUrl()
 export const dataProvider = simpleRestProvider(apiUrl, httpClient)

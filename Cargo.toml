@@ -11,6 +11,7 @@ version = "0.0.1"
 actix-cors = "0.6.4"
 actix-files = "0.6.2"
 actix-jwt-auth-middleware = "0.3.0"
+actix-session = {version = "0.9.0", features = ["cookie-session"]}
 actix-web = "4"
 actix-web-httpauth = "0.8.1"
 anyhow = "1.0.75"
@@ -27,6 +28,7 @@ jwt = "0.16.0"
 jwt-compact = "0.8.0"
 log = "0.4.17"
 parity-scale-codec = "3.1.5"
+rand = "0.8.5"
 serde = {version = "1.0.147", features = ["derive"]}
 serde_cbor = "0.11.2"
 serde_json = {version = "1.0", features = ["raw_value"]}

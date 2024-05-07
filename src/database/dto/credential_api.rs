@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use sodiumoxide::crypto::{box_, box_::Nonce};
-use uuid::Uuid;
 
 use super::{
     utils::{hex_nonce, prefixed_hex},
@@ -13,6 +12,7 @@ pub struct ChallengeData {
     pub app_name: String,
     #[serde(rename = "dAppEncryptionKeyUri")]
     pub encryption_key_uri: String,
+    #[serde(with = "prefixed_hex")]
     pub challenge: Vec<u8>,
 }
 
@@ -70,12 +70,4 @@ pub struct SubmitTermsMessageContent {
 pub struct RequestAttestationMessageContent {
     pub credential: Credential,
     pub quote: Option<serde_json::Value>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Session {
-    pub encryption_key_uri: Option<String>,
-    #[serde(alias = "challenge")]
-    pub id: Uuid,
 }

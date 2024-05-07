@@ -178,7 +178,8 @@ export default function AttestationList() {
         refresh()
         notify('Claim created')
         setIsLoading(false)
-      } catch {
+      } catch (e) {
+        console.error(e)
         notify('Could not claim credential.', { type: 'error' })
         setIsLoading(false)
       }

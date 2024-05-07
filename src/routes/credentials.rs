@@ -1,3 +1,4 @@
+use actix_session::Session;
 use actix_web::{post, web, HttpResponse, Scope};
 use sodiumoxide::crypto::box_;
 use sp_core::H256;
@@ -10,36 +11,26 @@ use crate::{
             Credential, EncryptedMessage, Message, MessageBody, RequestAttestationMessageContent,
             SubmitTermsMessageContent,
         },
-        querys::{
-            approve_attestation_request, get_attestation_request_by_id, get_session, remove_session,
-        },
+        querys::{approve_attestation_request, get_attestation_request_by_id},
     },
     error::AppError,
     kilt::KiltConfig,
     AppState,
 };
 
-#[post("/terms/{session_id}/{attestation_id}")]
+#[post("/terms/{attestation_id}")]
 async fn send_terms(
     state: web::Data<AppState>,
-    param: web::Path<(Uuid, Uuid)>,
+    param: web::Path<Uuid>,
+    session: Session,
 ) -> Result<HttpResponse, AppError> {
-    let session_id = param.0;
-    let attestation_id = param.1;
+    let attestation_id = param.into_inner();
 
-    let session = get_session(&state.db_executor, &session_id).await?;
+    let sender_key_uri = session
+        .get::<String>("encryption_key_uri")
+        .map_err(|_| AppError::Challenge("Session not set"))?
+        .ok_or(AppError::Challenge("Session not set"))?;
 
-    if session.encryption_key_uri.is_none() {
-        log::error!(
-            "Found session without encryption key uri in send terms: {:?}",
-            session_id
-        );
-        Err(actix_web::error::ErrorBadRequest(
-            "Session set up not completed",
-        ))?
-    }
-
-    let sender_key_uri = session.encryption_key_uri.unwrap();
     let others_pubkey = crate::kilt::parse_encryption_key_from_lightdid(&sender_key_uri)?;
 
     let attestation = get_attestation_request_by_id(&attestation_id, &state.db_executor).await?;
@@ -48,7 +39,7 @@ async fn send_terms(
 
     let credential: Credential = serde_json::from_value(attestation.credential)?;
 
-    let encryption_key_uri = state.session.key_uri.clone();
+    let encryption_key_uri = state.session_encryption_public_key_uri.clone();
 
     let sender = encryption_key_uri
         .split('#')
@@ -81,27 +72,26 @@ async fn send_terms(
 
     let msg_json = serde_json::to_string(&msg).unwrap();
     let msg_bytes = msg_json.as_bytes();
-    let our_secretkey = state.encryption_key.clone();
+    let our_secretkey = state.secret_key.clone();
     let nonce = box_::gen_nonce();
     let encrypted_msg = box_::seal(msg_bytes, &nonce, &others_pubkey, &our_secretkey);
     let response = EncryptedMessage {
         cipher_text: encrypted_msg,
         nonce,
-        sender_key_uri: state.session.key_uri.clone(),
+        sender_key_uri: state.session_encryption_public_key_uri.clone(),
         receiver_key_uri: sender_key_uri,
     };
 
     Ok(HttpResponse::Ok().json(response))
 }
 
-#[post("/{session}/{attestation_id}")]
+#[post("/{attestation_id}")]
 async fn request_attestation(
     state: web::Data<AppState>,
     encrypted_message: web::Json<EncryptedMessage>,
-    param: web::Path<(Uuid, Uuid)>,
+    param: web::Path<Uuid>,
 ) -> Result<HttpResponse, AppError> {
-    let session_id = param.0;
-    let attestation_id = param.1;
+    let attestation_id = param.into_inner();
 
     let attestation = get_attestation_request_by_id(&attestation_id, &state.db_executor).await?;
 
@@ -111,7 +101,6 @@ async fn request_attestation(
         ))?
     }
 
-    remove_session(&state.db_executor, &session_id).await?;
     let chain_client = OnlineClient::<KiltConfig>::from_url(&state.endpoint).await?;
 
     let others_pubkey = crate::kilt::get_encryption_key_from_fulldid_key_uri(
@@ -124,7 +113,7 @@ async fn request_attestation(
         &encrypted_message.cipher_text,
         &encrypted_message.nonce,
         &others_pubkey,
-        &state.encryption_key,
+        &state.secret_key,
     )
     .map_err(|_| AppError::Attestation("Unable to decrypt"))?;
 

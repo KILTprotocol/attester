@@ -1,4 +1,4 @@
-import { getBackendUrl } from '../utils/utils';
+import { getBackendUrl } from '../utils/utils'
 import { getAxiosClient } from './dataProvider'
 
 import { InjectedWindowProvider, PubSubSessionV1, PubSubSessionV2 } from '@kiltprotocol/kilt-extension-api'
@@ -9,7 +9,7 @@ export async function getSession(provider: InjectedWindowProvider): Promise<PubS
   }
 
   const apiUrl = getBackendUrl()
-  const challengeUrl = `${apiUrl}/challenge`;
+  const challengeUrl = `${apiUrl}/challenge`
 
   const client = await getAxiosClient()
 

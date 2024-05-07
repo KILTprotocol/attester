@@ -47,25 +47,19 @@ struct LightDidDetails {
 pub fn parse_encryption_key_from_lightdid(did: &str) -> Result<box_::PublicKey, AppError> {
     // example did:kilt:light:00${authAddress}:${details}#encryption
     let mut parts = did.split('#');
-    let first = parts
-        .next()
-        .ok_or(AppError::LightDid("malformed".to_string()))?;
+    let first = parts.next().ok_or(AppError::LightDid("malformed"))?;
     let mut parts = first.split(':').skip(4);
-    let details = parts
-        .next()
-        .ok_or(AppError::LightDid("malformed".to_string()))?;
+    let details = parts.next().ok_or(AppError::LightDid("malformed"))?;
 
     let mut chars = details.chars();
-    chars
-        .next()
-        .ok_or(AppError::LightDid("malformed".to_string()))?;
+    chars.next().ok_or(AppError::LightDid("malformed"))?;
     let bs: Vec<u8> = FromBase58::from_base58(chars.as_str())
-        .map_err(|_| AppError::LightDid("malformed base58".to_string()))?;
+        .map_err(|_| AppError::LightDid("malformed base58"))?;
 
-    let details: LightDidDetails =
-        serde_cbor::from_slice(&bs[1..]).map_err(|e| AppError::LightDid(e.to_string()))?;
+    let details: LightDidDetails = serde_cbor::from_slice(&bs[1..])
+        .map_err(|_| AppError::LightDid("Could not parse lightdid details"))?;
     box_::PublicKey::from_slice(&details.e.public_key)
-        .ok_or(AppError::LightDid("Not a valid public key".to_string()))
+        .ok_or(AppError::LightDid("Not a valid public key"))
 }
 
 fn parse_key_uri(key_uri: &str) -> Result<(&str, sp_core::H256), AppError> {
