@@ -30,7 +30,5 @@ export async function getSession(provider: InjectedWindowProvider): Promise<PubS
     throw new Error('No valid Session.')
   }
 
-  const sessionId = sessionVerification.data
-
-  return { session, sessionId }
+  return session
 }

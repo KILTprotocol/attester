@@ -172,9 +172,9 @@ export default function AttestationList() {
       const extension: InjectedWindowProvider = extensions.find((val) => val.name === extensionName)
 
       try {
-        const { session, sessionId } = await getSession(extension)
+        const session = await getSession(extension)
 
-        await fetchCredential(session, sessionId, record.id)
+        await fetchCredential(session, record.id)
         refresh()
         notify('Claim created')
         setIsLoading(false)
