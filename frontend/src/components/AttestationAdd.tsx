@@ -3,10 +3,22 @@ import TextField from '@mui/material/TextField'
 import { ICType, IClaimContents, Claim, DidUri, Credential as KiltCredential } from '@kiltprotocol/sdk-js'
 import { useState } from 'react'
 import ReactJson, { InteractionProps } from 'react-json-view'
+
 import { fetchCType } from '../utils/utils'
 
+function getFormattedDate(): string {
+  const date = new Date()
+  const day = date.getDate().toString().padStart(2, '0')
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const year = date.getFullYear().toString()
+  return `${year}-${month}-${day}`
+}
+
 //TODO:fix "It currently only works with ctypes with a height of 1."
-function getDefaultEntryForType({ type }: { type: string }) {
+function getDefaultEntryForType({ type, format }: { type: string; format?: string }) {
+  if (format === 'date' && type === 'string') {
+    return getFormattedDate()
+  }
   if (type === 'string') {
     return ''
   }
@@ -37,7 +49,7 @@ export default function AttestationCreate() {
       const ctypeDetails = await fetchCType(fmtCtype as unknown as `kilt:ctype:0x${string}`)
       const claimContent: Record<string, any> = {}
       Object.entries(ctypeDetails.cType.properties).map(
-        ([key, type]) => (claimContent[key] = getDefaultEntryForType(type as { type: string })),
+        ([key, type]) => (claimContent[key] = getDefaultEntryForType(type as { type: string; format?: string })),
       )
       setCtypeDetails(ctypeDetails.cType)
       setClaimContent(claimContent)
@@ -72,7 +84,9 @@ export default function AttestationCreate() {
       return KiltCredential.fromClaim(claim)
     } catch (e) {
       console.error(e)
-      notify('Ctype Verification failed')
+      notify('Ctype Verification failed', { type: 'error' })
+
+      throw e
     }
   }
 
@@ -80,7 +94,7 @@ export default function AttestationCreate() {
   const CustomToolBar = () => {
     return (
       <Toolbar>
-        <SaveButton alwaysEnable={claimer !== '' && claimContent !== undefined} label="Save" />
+        <SaveButton alwaysEnable={claimer !== '' && claimContent !== undefined} label="Save" type="button" />
       </Toolbar>
     )
   }
