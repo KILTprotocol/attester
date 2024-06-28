@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export async function getEndpoints(): Promise<Array<string>> {
-  const origin = 'https://dena-attester.kilt.io'
+  const origin = window.location.origin
   const backendUrl = `${origin}/api/v1`
   const endpointUrl = `${backendUrl}/endpoints`
   const response = await axios.get<Array<string>>(endpointUrl)
