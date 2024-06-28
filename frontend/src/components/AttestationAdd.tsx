@@ -16,7 +16,6 @@ function getFormattedDate(): string {
 
 //TODO:fix "It currently only works with ctypes with a height of 1."
 function getDefaultEntryForType({ type, format }: { type: string; format?: string }) {
-  console.log(type, format)
   if (format === 'date' && type === 'string') {
     return getFormattedDate()
   }
